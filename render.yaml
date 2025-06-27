@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: granite-api-service
+    runtime: node
+    rootDir: granite-api-service
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: IBM_API_KEY
+        sync: false
