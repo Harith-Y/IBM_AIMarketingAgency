@@ -103,7 +103,7 @@ app.get("/api/test-models", async (req, res) => {
 });
 
 // Updated main generation route
-app.post("/api/generate", async (req, res) => {
+app.post("/api/dashboard/post", async (req, res) => {
   const request = req.body;
 
   try {

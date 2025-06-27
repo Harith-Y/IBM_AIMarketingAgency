@@ -1,8 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, LogOut, User } from 'lucide-react';
+import { Sparkles, LogOut, User, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = ({ user, onLogout }) => {
+  const navigate = useNavigate();
+
   return (
     <motion.nav 
       className="relative"
@@ -62,7 +65,22 @@ const Navbar = ({ user, onLogout }) => {
                 Welcome, {user.firstName}
               </span>
             </motion.div>
-            
+
+            {/* History Button */}
+            <motion.button
+              onClick={() => navigate('/history')}
+              className="flex items-center space-x-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-500/30 text-blue-200 px-4 py-2 rounded-xl transition-all border border-blue-500/30 backdrop-blur-sm"
+              whileHover={{ scale: 1.05, y: -1 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              <Clock className="h-4 w-4" />
+              <span className="hidden sm:block">History</span>
+            </motion.button>
+
+            {/* Logout Button */}
             <motion.button
               onClick={onLogout}
               className="flex items-center space-x-2 bg-gradient-to-r from-red-500/20 to-pink-500/20 hover:from-red-500/30 hover:to-pink-500/30 text-red-200 px-4 py-2 rounded-xl transition-all border border-red-500/30 backdrop-blur-sm"
@@ -71,7 +89,6 @@ const Navbar = ({ user, onLogout }) => {
               transition={{ type: "spring", stiffness: 300 }}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              //transition={{ delay: 0.4, duration: 0.6 }}
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:block">Logout</span>
