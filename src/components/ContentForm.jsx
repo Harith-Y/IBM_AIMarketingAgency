@@ -11,7 +11,7 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
     tone: '',
     audienceCategory: '',
     productName: '',
-    platform: 'Instagram'
+    platform: 'Threads'
   });
 
   const handleSubmit = async (e) => {
@@ -28,7 +28,7 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
       tone: '',
       audienceCategory: '',
       productName: '',
-      platform: 'Instagram'
+      platform: 'Threads'
     });
     onReset();
   };
@@ -184,9 +184,7 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
               whileFocus={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <option value="Instagram" className="bg-gray-800">Instagram</option>
-              <option value="LinkedIn" className="bg-gray-800">LinkedIn</option>
-              <option value="Gmail" className="bg-gray-800">Gmail</option>
+              <option value="Threads" className="bg-gray-800">Threads</option>
               <option value="Twitter" className="bg-gray-800">Twitter</option>
               <option value="Facebook" className="bg-gray-800">Facebook</option>
             </motion.select>
