@@ -26,68 +26,94 @@ function buildPrompt(request, version) {
   }
 }
 
+// Get IAM token from IBM
+async function getIAMToken() {
+  const params = new URLSearchParams();
+  params.append("grant_type", "urn:ibm:params:oauth:grant-type:apikey");
+  params.append("apikey", process.env.IBM_API_KEY);
+
+  const response = await axios.post("https://iam.cloud.ibm.com/identity/token", params, {
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  });
+
+  return response.data.access_token;
+}
+
+// Main generation route
 app.post("/api/generate", async (req, res) => {
   const request = req.body;
 
   try {
-    // Generate prompts for A and B
-    const promptA = buildPrompt(request, 'A');
-    const promptB = buildPrompt(request, 'B');
+    const token = await getIAMToken();
 
-    // Call IBM Granite API for both versions (sequentially for simplicity)
+    const promptA = buildPrompt(request, "A");
+    const promptB = buildPrompt(request, "B");
+
+    const endpoint = `https://${process.env.REGION}.ml.cloud.ibm.com/ml/v1-beta/generation/text?version=2024-05-29`;
+
+    const model_id = "granite-3-8b-instruct";
+
     const [responseA, responseB] = await Promise.all([
       axios.post(
-        "https://us-south.ml.cloud.ibm.com/ml/v1-beta/generation/text",
+        endpoint,
         {
-          model_id: "granite-3-2-8b-instruct",
+          model_id,
           input: promptA,
-          parameters: { temperature: 0.7, max_new_tokens: 300 },
+          project_id: process.env.IBM_PROJECT_ID,
+          parameters: {
+            temperature: 0.7,
+            max_new_tokens: 300,
+            decoding_method: "sample",
+          },
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.IBM_API_KEY}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         }
       ),
       axios.post(
-        "https://us-south.ml.cloud.ibm.com/ml/v1-beta/generation/text",
+        endpoint,
         {
-          model_id: "granite-3-2-8b-instruct",
+          model_id,
           input: promptB,
-          parameters: { temperature: 0.7, max_new_tokens: 300 },
+          project_id: process.env.IBM_PROJECT_ID,
+          parameters: {
+            temperature: 0.7,
+            max_new_tokens: 300,
+            decoding_method: "sample",
+          },
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.IBM_API_KEY}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         }
       ),
     ]);
 
-    // Extract generated text
-    const contentA = responseA.data.generated_text || "No result";
-    const contentB = responseB.data.generated_text || "No result";
+    const contentA = responseA.data.results?.[0]?.generated_text || "No content from A";
+    const contentB = responseB.data.results?.[0]?.generated_text || "No content from B";
 
-    // Build response in frontend-expected format
-    const versionA = {
-      title: `${request.tone} ${request.brandName} Campaign - Version A`,
-      content: contentA,
-      metrics: generateMetrics(),
-    };
-    const versionB = {
-      title: `${request.tone} ${request.brandName} Campaign - Version B`,
-      content: contentB,
-      metrics: generateMetrics(),
-    };
-
-    res.json({ versionA, versionB });
+    res.json({
+      versionA: {
+        title: `${request.tone} ${request.brandName} Campaign - Version A`,
+        content: contentA,
+        metrics: generateMetrics(),
+      },
+      versionB: {
+        title: `${request.tone} ${request.brandName} Campaign - Version B`,
+        content: contentB,
+        metrics: generateMetrics(),
+      },
+    });
   } catch (err) {
     console.error(err.response?.data || err.message);
-    res.status(500).json({ error: "Error generating content" });
+    res.status(500).json({ error: "Error generating content", details: err.message });
   }
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Granite API server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Granite API server running on port ${PORT}`));
