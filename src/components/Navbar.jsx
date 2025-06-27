@@ -59,7 +59,7 @@ const Navbar = ({ user, onLogout }) => {
                 <User className="h-5 w-5" />
               </motion.div>
               <span className="hidden sm:block font-medium">
-                Welcome, {user.name}
+                Welcome, {user.firstName}
               </span>
             </motion.div>
             
