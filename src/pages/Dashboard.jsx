@@ -28,7 +28,7 @@ const Dashboard = ({ user, onLogout, showToast }) => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(${API_BASE_URL}/dashboard/post, request);
+      const response = await axios.post(`${API_BASE_URL}/dashboard/post`, request);
       const content = response.data;
 
       setGeneratedContent(content);
