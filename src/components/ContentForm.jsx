@@ -9,7 +9,9 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
     minAge: 18,
     maxAge: 65,
     tone: '',
-    audienceCategory: ''
+    audienceCategory: '',
+    productName: '',
+    platform: 'Instagram'
   });
 
   const handleSubmit = async (e) => {
@@ -24,7 +26,9 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
       minAge: 18,
       maxAge: 65,
       tone: '',
-      audienceCategory: ''
+      audienceCategory: '',
+      productName: '',
+      platform: 'Instagram'
     });
     onReset();
   };
@@ -65,14 +69,8 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Brand Name */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-          >
-            <label className="block text-sm font-semibold text-gray-200 mb-2">
-              Brand Name
-            </label>
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3, duration: 0.5 }}>
+            <label className="block text-sm font-semibold text-gray-200 mb-2">Brand Name</label>
             <motion.input
               type="text"
               value={formData.brandName}
@@ -86,14 +84,8 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
           </motion.div>
 
           {/* Audience Type */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-          >
-            <label className="block text-sm font-semibold text-gray-200 mb-2">
-              Target Audience
-            </label>
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4, duration: 0.5 }}>
+            <label className="block text-sm font-semibold text-gray-200 mb-2">Target Audience</label>
             <motion.select
               value={formData.audienceType}
               onChange={(e) => updateField('audienceType', e.target.value)}
@@ -108,16 +100,9 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
           </motion.div>
 
           {/* Age Range */}
-          <motion.div 
-            className="grid grid-cols-2 gap-4"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-          >
+          <motion.div className="grid grid-cols-2 gap-4" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5, duration: 0.5 }}>
             <div>
-              <label className="block text-sm font-semibold text-gray-200 mb-2">
-                Min Age
-              </label>
+              <label className="block text-sm font-semibold text-gray-200 mb-2">Min Age</label>
               <motion.input
                 type="number"
                 value={formData.minAge}
@@ -130,9 +115,7 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-200 mb-2">
-                Max Age
-              </label>
+              <label className="block text-sm font-semibold text-gray-200 mb-2">Max Age</label>
               <motion.input
                 type="number"
                 value={formData.maxAge}
@@ -147,14 +130,8 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
           </motion.div>
 
           {/* Tone */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
-          >
-            <label className="block text-sm font-semibold text-gray-200 mb-2">
-              Content Tone
-            </label>
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6, duration: 0.5 }}>
+            <label className="block text-sm font-semibold text-gray-200 mb-2">Content Tone</label>
             <motion.input
               type="text"
               value={formData.tone}
@@ -168,14 +145,8 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
           </motion.div>
 
           {/* Audience Category */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.7, duration: 0.5 }}
-          >
-            <label className="block text-sm font-semibold text-gray-200 mb-2">
-              Audience Category
-            </label>
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.7, duration: 0.5 }}>
+            <label className="block text-sm font-semibold text-gray-200 mb-2">Audience Category</label>
             <motion.input
               type="text"
               value={formData.audienceCategory}
@@ -188,13 +159,41 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
             />
           </motion.div>
 
+          {/* Product Name */}
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.75, duration: 0.5 }}>
+            <label className="block text-sm font-semibold text-gray-200 mb-2">Product Name</label>
+            <motion.input
+              type="text"
+              value={formData.productName}
+              onChange={(e) => updateField('productName', e.target.value)}
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-400/50 transition-all duration-300 backdrop-blur-sm"
+              placeholder="e.g., AI Marketing Tool, Fitness Band"
+              required
+              whileFocus={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            />
+          </motion.div>
+
+          {/* Social Media Platform */}
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.8, duration: 0.5 }}>
+            <label className="block text-sm font-semibold text-gray-200 mb-2">Platform</label>
+            <motion.select
+              value={formData.platform}
+              onChange={(e) => updateField('platform', e.target.value)}
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 transition-all duration-300 backdrop-blur-sm"
+              whileFocus={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <option value="Instagram" className="bg-gray-800">Instagram</option>
+              <option value="LinkedIn" className="bg-gray-800">LinkedIn</option>
+              <option value="Gmail" className="bg-gray-800">Gmail</option>
+              <option value="Twitter" className="bg-gray-800">Twitter</option>
+              <option value="Facebook" className="bg-gray-800">Facebook</option>
+            </motion.select>
+          </motion.div>
+
           {/* Buttons */}
-          <motion.div 
-            className="flex space-x-3 pt-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.5 }}
-          >
+          <motion.div className="flex space-x-3 pt-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.85, duration: 0.5 }}>
             <motion.button
               type="submit"
               disabled={!isFormValid || isLoading}
@@ -203,18 +202,10 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
               whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-500 opacity-0"
-                whileHover={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              />
+              <motion.div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-500 opacity-0" whileHover={{ opacity: 1 }} transition={{ duration: 0.3 }} />
               <div className="relative flex items-center justify-center space-x-2">
                 {isLoading ? (
-                  <motion.div
-                    className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  />
+                  <motion.div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} />
                 ) : (
                   <>
                     <Send className="h-4 w-4" />
@@ -223,7 +214,7 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
                 )}
               </div>
             </motion.button>
-            
+
             <motion.button
               type="button"
               onClick={handleReset}

@@ -21,7 +21,7 @@ const Navbar = ({ user, onLogout }) => {
           >
             <div className="relative">
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-600 rounded-2xl blur-sm opacity-75"
+                className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl blur-sm opacity-75"
                 animate={{
                   scale: [1, 1.1, 1],
                   opacity: [0.75, 0.9, 0.75],
@@ -32,7 +32,7 @@ const Navbar = ({ user, onLogout }) => {
                   ease: "easeInOut"
                 }}
               />
-              <div className="relative bg-gradient-to-r from-cyan-500 to-purple-600 p-2 rounded-2xl shadow-lg">
+              <div className="relative bg-gradient-to-r from-pink-500 to-purple-600 p-2 rounded-2xl shadow-lg">
                 <Sparkles className="h-6 w-6 text-white" />
               </div>
             </div>

@@ -3,25 +3,29 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
 
-const LoginPage = ({ onLogin }) => {
+const RegisterPage = ({ onRegister }) => {
   const navigate = useNavigate();
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      alert("Passwords don't match!");
+      return;
+    }
+
     setIsLoading(true);
-
     await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const success = onLogin(email, password);
+    const success = onRegister(email, password, firstName, lastName);
     setIsLoading(false);
 
     if (success) {
-      navigate('/dashboard');
-    } else {
-      setPassword('');
+      navigate('/login');
     }
   };
 
@@ -42,7 +46,7 @@ const LoginPage = ({ onLogin }) => {
           >
             <div className="relative">
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-pink-400 to-purple-600 rounded-3xl blur-lg opacity-75"
+                className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 rounded-3xl blur-lg opacity-75"
                 animate={{
                   scale: [1, 1.2, 1],
                   opacity: [0.75, 0.9, 0.75],
@@ -50,7 +54,7 @@ const LoginPage = ({ onLogin }) => {
                 transition={{
                   duration: 3,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: "easeInOut",
                 }}
               />
               <div className="relative bg-gradient-to-r from-pink-500 to-purple-600 p-4 rounded-3xl shadow-2xl">
@@ -64,7 +68,7 @@ const LoginPage = ({ onLogin }) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.8 }}
           >
-            Welcome Back
+            Create Your Account
           </motion.h2>
           <motion.p
             className="text-gray-300 text-lg"
@@ -72,7 +76,7 @@ const LoginPage = ({ onLogin }) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.8 }}
           >
-            Sign in to MarketingAI Pro
+            Sign up for MarketingAI Pro
           </motion.p>
         </motion.div>
 
@@ -86,36 +90,72 @@ const LoginPage = ({ onLogin }) => {
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl" />
           <div className="relative p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* First Name */}
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-200 mb-3">
-                  Email Address
-                </label>
+                <label className="block text-sm font-semibold text-gray-200 mb-3">First Name</label>
                 <input
-                  id="email"
+                  type="text"
+                  required
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="w-full px-4 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all duration-300 backdrop-blur-sm"
+                  placeholder="Enter your first name"
+                />
+              </div>
+
+              {/* Last Name */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-200 mb-3">Last Name</label>
+                <input
+                  type="text"
+                  required
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="w-full px-4 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all duration-300 backdrop-blur-sm"
+                  placeholder="Enter your last name"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-200 mb-3">Email Address</label>
+                <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all duration-300 backdrop-blur-sm"
-                  placeholder="you@example.com"
+                  placeholder="Enter your email"
                 />
               </div>
 
+              {/* Password */}
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-200 mb-3">
-                  Password
-                </label>
+                <label className="block text-sm font-semibold text-gray-200 mb-3">Password</label>
                 <input
-                  id="password"
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all duration-300 backdrop-blur-sm"
-                  placeholder="Enter your password"
+                  placeholder="Create a password"
                 />
               </div>
 
+              {/* Confirm Password */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-200 mb-3">Confirm Password</label>
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all duration-300 backdrop-blur-sm"
+                  placeholder="Confirm your password"
+                />
+              </div>
+
+              {/* Submit Button */}
               <motion.button
                 type="submit"
                 disabled={isLoading}
@@ -137,7 +177,7 @@ const LoginPage = ({ onLogin }) => {
                     />
                   ) : (
                     <>
-                      <span className="text-lg">Sign In</span>
+                      <span className="text-lg">Sign Up</span>
                       <ArrowRight className="h-5 w-5" />
                     </>
                   )}
@@ -147,22 +187,15 @@ const LoginPage = ({ onLogin }) => {
 
             {/* Links */}
             <div className="mt-8 text-center space-y-4">
-              <motion.a
-                href="#"
-                className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors duration-300 font-medium"
-                whileHover={{ scale: 1.05 }}
-              >
-                Forgot your password?
-              </motion.a>
               <div className="text-gray-400 text-sm">
-                Don&apos;t have an account?{' '}
+                Already have an account?{' '}
                 <motion.button
                   type="button"
-                  onClick={() => navigate('/register')}
+                  onClick={() => navigate('/login')}
                   className="text-purple-400 hover:text-purple-300 transition-colors duration-300 font-medium"
                   whileHover={{ scale: 1.05 }}
                 >
-                  Sign up
+                  Login
                 </motion.button>
               </div>
             </div>
@@ -173,4 +206,4 @@ const LoginPage = ({ onLogin }) => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
