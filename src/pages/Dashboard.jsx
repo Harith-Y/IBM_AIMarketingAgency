@@ -13,61 +13,36 @@ const Dashboard = ({ user, onLogout, showToast }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedContent, setGeneratedContent] = useState(null);
 
-  // const generateContent = async (request) => {
-  //   setIsLoading(true);
-
-  //   try {
-  //     // Simulate API delay
-  //     await new Promise(resolve => setTimeout(resolve, 2000));
-
-  //     // Generate mock content based on the request
-  //     const mockContent = {
-  //       versionA: {
-  //         title: `${request.tone} ${request.brandName} Campaign - Version A`,
-  //         content: `🎯 Exclusive for ${request.audienceCategory}!\n\nDiscover ${request.brandName}'s latest collection designed specifically for ${request.audienceType === 'All' ? 'everyone' : request.audienceType.toLowerCase()} aged ${request.minAge}-${request.maxAge}.\n\n${request.tone === 'Professional' ? 'Experience premium quality and exceptional service.' : request.tone === 'Friendly' ? 'Join our community and enjoy amazing benefits!' : 'Don\'t miss out on this limited-time opportunity!'}\n\n✨ Special Launch Offer: 25% OFF\n🚚 Free shipping on orders over $50\n💝 Exclusive member perks\n\nShop now and transform your ${request.audienceCategory.toLowerCase()} experience!`,
-  //         metrics: {
-  //           openRate: Math.round(Math.random() * 20 + 65),
-  //           clickThroughRate: Math.round(Math.random() * 8 + 12),
-  //           conversionRate: Math.round(Math.random() * 5 + 8),
-  //         }
-  //       },
-  //       versionB: {
-  //         title: `${request.tone} ${request.brandName} Campaign - Version B`,
-  //         content: `🔥 ${request.brandName} Presents: The Ultimate ${request.audienceCategory} Experience!\n\nTailored for ${request.audienceType === 'All' ? 'all our valued customers' : `${request.audienceType.toLowerCase()} customers`} in the ${request.minAge}-${request.maxAge} age range.\n\n${request.tone === 'Professional' ? 'Elevate your standards with our premium solutions.' : request.tone === 'Friendly' ? 'We\'re excited to share something special with you!' : 'Act fast - this deal won\'t last long!'}\n\n🎁 What's included:\n• Premium ${request.brandName} products\n• Priority customer support\n• Exclusive member discounts\n• Early access to new releases\n\nClaim your ${request.tone.toLowerCase()} advantage today!`,
-  //         metrics: {
-  //           openRate: Math.round(Math.random() * 20 + 65),
-  //           clickThroughRate: Math.round(Math.random() * 8 + 12),
-  //           conversionRate: Math.round(Math.random() * 5 + 8),
-  //         }
-  //       }
-  //     };
-
-  //     setGeneratedContent(mockContent);
-  //     showToast('Content generated successfully!', 'success');
-  //   } catch (error) {
-  //     showToast('Failed to generate content. Please try again.', 'error');
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
+  const saveToHistory = (request, content) => {
+    const prev = JSON.parse(localStorage.getItem('generated_history')) || [];
+    const newEntry = {
+      timestamp: new Date().toISOString(),
+      request,
+      versionA: content.versionA,
+      versionB: content.versionB
+    };
+    localStorage.setItem('generated_history', JSON.stringify([newEntry, ...prev]));
+  };
 
   const generateContent = async (request) => {
-  setIsLoading(true);
+    setIsLoading(true);
 
-  try {
-    const response = await axios.post(`${API_BASE_URL}/dashboard/post`, request);
+    try {
+      const response = await axios.post(${API_BASE_URL}/dashboard/post, request);
+      const content = response.data;
 
-    const mockContent = response.data; // versionA and versionB
+      setGeneratedContent(content);
+      showToast("Content generated successfully!", "success");
 
-    setGeneratedContent(mockContent);
-    showToast("Content generated successfully!", "success");
-  } catch (error) {
-    console.error("Content generation failed:", error);
-    showToast("Failed to generate content. Please try again.", "error");
-  } finally {
-    setIsLoading(false);
-  }
-};
+      // Save to history
+      saveToHistory(request, content);
+    } catch (error) {
+      console.error("Content generation failed:", error);
+      showToast("Failed to generate content. Please try again.", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const resetContent = () => {
     setGeneratedContent(null);
@@ -98,7 +73,6 @@ const Dashboard = ({ user, onLogout, showToast }) => {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Content Form */}
           <motion.div 
             className="lg:col-span-1"
             initial={{ opacity: 0, x: -50 }}
@@ -112,7 +86,6 @@ const Dashboard = ({ user, onLogout, showToast }) => {
             />
           </motion.div>
 
-          {/* Output Section */}
           <motion.div 
             className="lg:col-span-2 space-y-8"
             initial={{ opacity: 0, x: 50 }}
@@ -176,7 +149,6 @@ const Dashboard = ({ user, onLogout, showToast }) => {
           </motion.div>
         </div>
 
-        {/* ABChart outside the grid for full width */}
         {generatedContent && !isLoading && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
