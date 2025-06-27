@@ -139,6 +139,7 @@ const App = () => {
             <Route
               path="*"
               element={<Navigate to={user ? '/dashboard' : '/login'} replace />}
+            />
 
             <Route
               path="/history"
@@ -157,7 +158,6 @@ const App = () => {
                   <Navigate to="/login" replace />
                 )
               }
-
             />
           </Routes>
         </AnimatePresence>
