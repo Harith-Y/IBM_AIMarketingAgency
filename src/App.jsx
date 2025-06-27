@@ -134,6 +134,12 @@ const App = () => {
                 )
               }
             />
+
+            {/* Catch-all route for any undefined path */}
+            <Route
+              path="*"
+              element={<Navigate to={user ? '/dashboard' : '/login'} replace />}
+
             <Route
               path="/history"
               element={
@@ -151,6 +157,7 @@ const App = () => {
                   <Navigate to="/login" replace />
                 )
               }
+
             />
           </Routes>
         </AnimatePresence>
