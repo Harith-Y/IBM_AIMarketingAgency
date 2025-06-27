@@ -39,7 +39,70 @@ async function getIAMToken() {
   return response.data.access_token;
 }
 
-// Main generation route
+// Array of potential model IDs to try
+const POTENTIAL_MODELS = [
+  "ibm/granite-13b-instruct-v2",
+  "ibm/granite-3-8b-instruct"
+];
+
+// Function to test which model works
+async function findWorkingModel(token, endpoint, projectId, testPrompt) {
+  for (const modelId of POTENTIAL_MODELS) {
+    try {
+      console.log(`Testing model: ${modelId}`);
+      const response = await axios.post(
+        endpoint,
+        {
+          model_id: modelId,
+          input: testPrompt,
+          project_id: projectId,
+          parameters: {
+            temperature: 0.7,
+            max_new_tokens: 50,
+            decoding_method: "sample",
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      
+      console.log(`✅ Working model found: ${modelId}`);
+      return modelId;
+    } catch (error) {
+      console.log(`❌ Model ${modelId} failed:`, error.response?.data?.errors?.[0]?.message || error.message);
+    }
+  }
+  throw new Error("No working model found");
+}
+
+// Test endpoint to find working model
+app.get("/api/test-models", async (req, res) => {
+  try {
+    const token = await getIAMToken();
+    const endpoint = `https://${process.env.REGION}.ml.cloud.ibm.com/ml/v1-beta/generation/text?version=2024-05-29`;
+    const testPrompt = "Hello, this is a test.";
+    
+    const workingModel = await findWorkingModel(token, endpoint, process.env.IBM_PROJECT_ID, testPrompt);
+    
+    res.json({
+      success: true,
+      workingModel: workingModel,
+      message: `Found working model: ${workingModel}`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "No working models found. Please check the available models in your watsonx.ai instance."
+    });
+  }
+});
+
+// Updated main generation route
 app.post("/api/generate", async (req, res) => {
   const request = req.body;
 
@@ -51,13 +114,14 @@ app.post("/api/generate", async (req, res) => {
 
     const endpoint = `https://${process.env.REGION}.ml.cloud.ibm.com/ml/v1-beta/generation/text?version=2024-05-29`;
 
-    const model_id = "granite-3-8b-instruct";
+    // Try to find a working model first
+    const workingModel = await findWorkingModel(token, endpoint, process.env.IBM_PROJECT_ID, "Test prompt");
 
     const [responseA, responseB] = await Promise.all([
       axios.post(
         endpoint,
         {
-          model_id,
+          model_id: workingModel,
           input: promptA,
           project_id: process.env.IBM_PROJECT_ID,
           parameters: {
@@ -76,7 +140,7 @@ app.post("/api/generate", async (req, res) => {
       axios.post(
         endpoint,
         {
-          model_id,
+          model_id: workingModel,
           input: promptB,
           project_id: process.env.IBM_PROJECT_ID,
           parameters: {
@@ -108,10 +172,15 @@ app.post("/api/generate", async (req, res) => {
         content: contentB,
         metrics: generateMetrics(),
       },
+      modelUsed: workingModel
     });
   } catch (err) {
-    console.error(err.response?.data || err.message);
-    res.status(500).json({ error: "Error generating content", details: err.message });
+    console.error("Full error:", err.response?.data || err.message);
+    res.status(500).json({ 
+      error: "Error generating content", 
+      details: err.message,
+      fullError: err.response?.data
+    });
   }
 });
 
