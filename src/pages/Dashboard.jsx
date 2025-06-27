@@ -20,8 +20,10 @@ const Dashboard = ({ user, onLogout, showToast }) => {
     const newEntry = {
       timestamp: new Date().toISOString(),
       request,
-      versionA: content.versionA,
-      versionB: content.versionB
+      content: {
+          versionA: content.versionA,
+          versionB: content.versionB
+        }
     };
     localStorage.setItem('generated_history', JSON.stringify([newEntry, ...prev]));
   };
