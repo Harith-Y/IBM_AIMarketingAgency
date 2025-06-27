@@ -13,6 +13,8 @@ const Dashboard = ({ user, onLogout, showToast }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedContent, setGeneratedContent] = useState(null);
 
+
+
   const saveToHistory = (request, content) => {
     const prev = JSON.parse(localStorage.getItem('generated_history')) || [];
     const newEntry = {
@@ -23,6 +25,7 @@ const Dashboard = ({ user, onLogout, showToast }) => {
     };
     localStorage.setItem('generated_history', JSON.stringify([newEntry, ...prev]));
   };
+
 
   const generateContent = async (request) => {
     setIsLoading(true);
