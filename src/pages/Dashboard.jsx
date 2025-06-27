@@ -5,6 +5,7 @@ import ContentForm from '../components/ContentForm';
 import OutputSection from '../components/OutputSection';
 import ABChart from '../components/ABChart';
 import LoadingSpinner from '../components/LoadingSpinner';
+import axios from 'axios';
 
 const API_BASE_URL = "http://localhost:8080/api";
 
@@ -54,7 +55,7 @@ const Dashboard = ({ user, onLogout, showToast }) => {
   setIsLoading(true);
 
   try {
-    const response = await axios.post(`${API_BASE_URL}/campaign/post`, request);
+    const response = await axios.post(`${API_BASE_URL}/dashboard/post`, request);
 
     const mockContent = response.data; // versionA and versionB
 

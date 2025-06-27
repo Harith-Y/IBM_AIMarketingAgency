@@ -10,8 +10,7 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
     maxAge: 65,
     tone: '',
     audienceCategory: '',
-    productName: '',
-    platform: 'Threads'
+    productName: ''
   });
 
   const handleSubmit = async (e) => {
@@ -27,8 +26,7 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
       maxAge: 65,
       tone: '',
       audienceCategory: '',
-      productName: '',
-      platform: 'Threads'
+      productName: ''
     });
     onReset();
   };
@@ -160,35 +158,10 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
           </motion.div>
 
           {/* Product Name */}
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.75, duration: 0.5 }}>
-            <label className="block text-sm font-semibold text-gray-200 mb-2">Product Name</label>
-            <motion.input
-              type="text"
-              value={formData.productName}
-              onChange={(e) => updateField('productName', e.target.value)}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-400/50 transition-all duration-300 backdrop-blur-sm"
-              placeholder="e.g., AI Marketing Tool, Fitness Band"
-              required
-              whileFocus={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            />
-          </motion.div>
+          
 
           {/* Social Media Platform */}
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.8, duration: 0.5 }}>
-            <label className="block text-sm font-semibold text-gray-200 mb-2">Platform</label>
-            <motion.select
-              value={formData.platform}
-              onChange={(e) => updateField('platform', e.target.value)}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 transition-all duration-300 backdrop-blur-sm"
-              whileFocus={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <option value="Threads" className="bg-gray-800">Threads</option>
-              <option value="Twitter" className="bg-gray-800">Twitter</option>
-              <option value="Facebook" className="bg-gray-800">Facebook</option>
-            </motion.select>
-          </motion.div>
+          
 
           {/* Buttons */}
           <motion.div className="flex space-x-3 pt-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.85, duration: 0.5 }}>
