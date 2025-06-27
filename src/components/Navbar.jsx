@@ -71,7 +71,7 @@ const Navbar = ({ user, onLogout }) => {
               transition={{ type: "spring", stiffness: 300 }}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
+              //transition={{ delay: 0.4, duration: 0.6 }}
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:block">Logout</span>
