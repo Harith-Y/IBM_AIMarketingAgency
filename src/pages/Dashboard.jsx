@@ -13,44 +13,6 @@ const Dashboard = ({ user, onLogout, showToast }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedContent, setGeneratedContent] = useState(null);
 
-  // const generateContent = async (request) => {
-  //   setIsLoading(true);
-
-  //   try {
-  //     // Simulate API delay
-  //     await new Promise(resolve => setTimeout(resolve, 2000));
-
-  //     // Generate mock content based on the request
-  //     const mockContent = {
-  //       versionA: {
-  //         title: `${request.tone} ${request.brandName} Campaign - Version A`,
-  //         content: `🎯 Exclusive for ${request.audienceCategory}!\n\nDiscover ${request.brandName}'s latest collection designed specifically for ${request.audienceType === 'All' ? 'everyone' : request.audienceType.toLowerCase()} aged ${request.minAge}-${request.maxAge}.\n\n${request.tone === 'Professional' ? 'Experience premium quality and exceptional service.' : request.tone === 'Friendly' ? 'Join our community and enjoy amazing benefits!' : 'Don\'t miss out on this limited-time opportunity!'}\n\n✨ Special Launch Offer: 25% OFF\n🚚 Free shipping on orders over $50\n💝 Exclusive member perks\n\nShop now and transform your ${request.audienceCategory.toLowerCase()} experience!`,
-  //         metrics: {
-  //           openRate: Math.round(Math.random() * 20 + 65),
-  //           clickThroughRate: Math.round(Math.random() * 8 + 12),
-  //           conversionRate: Math.round(Math.random() * 5 + 8),
-  //         }
-  //       },
-  //       versionB: {
-  //         title: `${request.tone} ${request.brandName} Campaign - Version B`,
-  //         content: `🔥 ${request.brandName} Presents: The Ultimate ${request.audienceCategory} Experience!\n\nTailored for ${request.audienceType === 'All' ? 'all our valued customers' : `${request.audienceType.toLowerCase()} customers`} in the ${request.minAge}-${request.maxAge} age range.\n\n${request.tone === 'Professional' ? 'Elevate your standards with our premium solutions.' : request.tone === 'Friendly' ? 'We\'re excited to share something special with you!' : 'Act fast - this deal won\'t last long!'}\n\n🎁 What's included:\n• Premium ${request.brandName} products\n• Priority customer support\n• Exclusive member discounts\n• Early access to new releases\n\nClaim your ${request.tone.toLowerCase()} advantage today!`,
-  //         metrics: {
-  //           openRate: Math.round(Math.random() * 20 + 65),
-  //           clickThroughRate: Math.round(Math.random() * 8 + 12),
-  //           conversionRate: Math.round(Math.random() * 5 + 8),
-  //         }
-  //       }
-  //     };
-
-  //     setGeneratedContent(mockContent);
-  //     showToast('Content generated successfully!', 'success');
-  //   } catch (error) {
-  //     showToast('Failed to generate content. Please try again.', 'error');
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
   const generateContent = async (request) => {
   setIsLoading(true);
 

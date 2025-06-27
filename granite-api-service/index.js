@@ -172,7 +172,7 @@ app.post("/api/generate", async (req, res) => {
         content: contentB,
         metrics: generateMetrics(),
       },
-      modelUsed: workingModel
+      // modelUsed: workingModel
     });
   } catch (err) {
     console.error("Full error:", err.response?.data || err.message);
