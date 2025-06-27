@@ -7,7 +7,7 @@ import ABChart from '../components/ABChart';
 import LoadingSpinner from '../components/LoadingSpinner';
 import axios from 'axios';
 
-const API_BASE_URL = "http://localhost:8080/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Dashboard = ({ user, onLogout, showToast }) => {
   const [isLoading, setIsLoading] = useState(false);
