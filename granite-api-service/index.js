@@ -17,14 +17,32 @@ function generateMetrics() {
 }
 
 // Helper to build prompts for A/B
-function buildPrompt(request, version) {
+function buildPrompt(request) {
   const { tone, brandName, audienceCategory, audienceType, minAge, maxAge, product, offer, season } = request;
-  // Add more creative and distinct instructions for A/B
-  if (version === 'A') {
-    return `You are a creative marketing copywriter. Write a highly engaging, ${tone.toLowerCase()} campaign for ${brandName} targeting ${audienceCategory} (${audienceType}), ages ${minAge}-${maxAge}. Compose a detailed, multi-paragraph campaign that includes an attention-grabbing hook, a compelling story or scenario, emotional appeal, a unique value proposition, and a strong call to action. Use vivid language, specific examples, and persuasive techniques. Make it suitable for ${season || 'the current season'}. If a product or offer is provided, weave it in: Product: ${product || 'N/A'}, Offer: ${offer || 'N/A'}. Ensure the response is comprehensive and not less than 200 words. Label this as Version A.`;
-  } else {
-    return `As an expert in persuasive marketing, craft a ${tone.toLowerCase()} promotional message for ${brandName} aimed at ${audienceCategory} (${audienceType}), ages ${minAge}-${maxAge}. Start with a relatable scenario or question, use storytelling, and include a creative twist or surprise. Make it feel fresh and different from typical ads. If a product or offer is provided, integrate it naturally: Product: ${product || 'N/A'}, Offer: ${offer || 'N/A'}. Make it seasonally relevant for ${season || 'the current season'}. Ensure the response is comprehensive and not less than 200 words. Label this as Version B.`;
-  }
+  
+  // Determine ad type based on context (you can make this more dynamic)
+  const adType = "marketing campaign";
+  const platform = "multi-platform"; // You can make this dynamic based on user selection
+  
+  return `You are an expert marketing copywriter. Create a compelling ${adType} for the following product:
+
+Brand Name: ${brandName}
+
+Product Name: ${product || 'N/A'}
+
+Campaign Tone: ${tone} (e.g., playful, bold, premium, friendly, inspiring)
+
+Target Audience: ${audienceCategory} (${audienceType})
+
+Age Range: ${minAge}-${maxAge}
+
+Platform: ${platform} (e.g., Instagram, Facebook, Google Ads, LinkedIn)
+
+⚡ Ensure the ad appeals to the specified age group and tone.
+⚡ Make the language natural, engaging, and suited for the platform.
+⚡ Suggest a CTA (Call to Action).
+
+Generate two variations to enable A/B testing. Label them clearly as "Variation A" and "Variation B".`;
 }
 
 // Get IAM token from IBM
@@ -110,57 +128,64 @@ app.post("/api/dashboard/post", async (req, res) => {
   try {
     const token = await getIAMToken();
 
-    const promptA = buildPrompt(request, "A");
-    const promptB = buildPrompt(request, "B");
+    const prompt = buildPrompt(request);
 
     const endpoint = `https://${process.env.REGION}.ml.cloud.ibm.com/ml/v1-beta/generation/text?version=2024-05-29`;
 
     // Try to find a working model first
     const workingModel = await findWorkingModel(token, endpoint, process.env.IBM_PROJECT_ID, "Test prompt");
 
-    const [responseA, responseB] = await Promise.all([
-      axios.post(
-        endpoint,
-        {
-          model_id: workingModel,
-          input: promptA,
-          project_id: process.env.IBM_PROJECT_ID,
-          parameters: {
-            temperature: 0.8,
-            max_new_tokens: 600,
-            decoding_method: "sample"
-          },
+    const response = await axios.post(
+      endpoint,
+      {
+        model_id: workingModel,
+        input: prompt,
+        project_id: process.env.IBM_PROJECT_ID,
+        parameters: {
+          temperature: 0.8,
+          max_new_tokens: 1000, // Increased for two variations
+          decoding_method: "sample"
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      ),
-      axios.post(
-        endpoint,
-        {
-          model_id: workingModel,
-          input: promptB,
-          project_id: process.env.IBM_PROJECT_ID,
-          parameters: {
-            temperature: 0.8,
-            max_new_tokens: 600,
-            decoding_method: "sample"
-          },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      ),
-    ]);
+      }
+    );
 
-    const contentA = responseA.data.results?.[0]?.generated_text || "No content from A";
-    const contentB = responseB.data.results?.[0]?.generated_text || "No content from B";
+    const content = response.data.results?.[0]?.generated_text || "No content generated";
+
+    // Parse the response to extract both variations
+    let contentA = "No content from A";
+    let contentB = "No content from B";
+    
+    if (content) {
+      // Try to split by variation labels with more flexible matching
+      const variationASplit = content.split(/variation a|version a|variation a:|version a:/i);
+      const variationBSplit = content.split(/variation b|version b|variation b:|version b:/i);
+      
+      if (variationASplit.length > 1 && variationBSplit.length > 1) {
+        // Extract content between variations
+        const fullContent = variationASplit[1];
+        const bSplit = fullContent.split(/variation b|version b|variation b:|version b:/i);
+        contentA = bSplit[0].trim();
+        contentB = bSplit[1] ? bSplit[1].trim() : "No content from B";
+      } else {
+        // If we can't parse variations, split the content in half
+        const lines = content.split('\n').filter(line => line.trim() !== '');
+        const midPoint = Math.floor(lines.length / 2);
+        contentA = lines.slice(0, midPoint).join('\n').trim();
+        contentB = lines.slice(midPoint).join('\n').trim();
+        
+        // If splitting resulted in empty content, use the full content for both
+        if (!contentA || !contentB) {
+          contentA = content;
+          contentB = content;
+        }
+      }
+    }
 
     res.json({
       versionA: {
@@ -173,7 +198,8 @@ app.post("/api/dashboard/post", async (req, res) => {
         content: contentB,
         metrics: generateMetrics(),
       },
-      modelUsed: workingModel
+      modelUsed: workingModel,
+      rawResponse: content // Include raw response for debugging
     });
   } catch (err) {
     console.error("Full error:", err.response?.data || err.message);
