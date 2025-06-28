@@ -249,7 +249,7 @@ app.post("/api/dashboard/post", async (req, res) => {
 
 // AYRSHARE POST ENDPOINT
 app.post("/api/ayrshare/post", async (req, res) => {
-  const { text, platforms } = req.body;
+  const { text, platforms, mediaUrls } = req.body;
   const apiKey = process.env.AYRSHARE_API;
 
   if (!apiKey) {
@@ -260,24 +260,29 @@ app.post("/api/ayrshare/post", async (req, res) => {
   }
 
   try {
-    const response = await axios.post(
-      "https://api.ayrshare.com/api/post",
-      {
-        post: text,
-        platforms: platforms
+    // Use node-fetch for fetch API
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const response = await fetch("https://api.ayrshare.com/api/post", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
       },
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json"
-        }
-      }
-    );
-    res.json(response.data);
+      body: JSON.stringify({
+        post: text,
+        platforms: platforms,
+        ...(mediaUrls ? { mediaUrls } : {})
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      return res.status(response.status).json({ error: data.error || "Ayrshare API error", details: data });
+    }
+    res.json(data);
   } catch (err) {
-    res.status(err.response?.status || 500).json({
-      error: err.response?.data?.error || err.message,
-      details: err.response?.data || null
+    res.status(500).json({
+      error: err.message || "Unknown error",
+      details: err
     });
   }
 });
