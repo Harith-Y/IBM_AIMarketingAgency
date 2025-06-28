@@ -143,7 +143,7 @@ const OutputSection = ({ content, showToast }) => {
               </div>
             </div>
 
-            <h3 className="text-xl font-semibold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+            <h3 className="text-xl font-semibold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-4">
               Expected Performance Metrics
             </h3>
 
@@ -239,7 +239,7 @@ const OutputSection = ({ content, showToast }) => {
               </div>
             </div>
 
-            <h3 className="text-xl font-semibold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+            <h3 className="text-xl font-semibold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-4">
               Expected Performance Metrics
             </h3>
       
