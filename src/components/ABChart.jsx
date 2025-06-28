@@ -54,7 +54,7 @@ const ABChart = ({ content }) => {
             <BarChart3 className="h-5 w-5 text-cyan-400" />
           </motion.div>
           <h3 className="text-xl font-semibold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-            A/B Testing Analytics
+            A/B Testing - Estimated Analytics
           </h3>
         </motion.div>
 
