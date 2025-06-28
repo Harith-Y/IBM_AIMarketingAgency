@@ -148,7 +148,7 @@ async function getEstimatedMetrics(content, token, endpoint, projectId) {
           max_new_tokens: 100,
           decoding_method: "sample"
         },
-        // reset: true // Uncomment this if you want to reset the model's context/history because of it's biased responses.
+        reset: true // Uncomment this if you want to reset the model's context/history because of it's biased responses.
       },
       {
         headers: {
@@ -196,7 +196,7 @@ app.post("/api/dashboard/post", async (req, res) => {
           max_new_tokens: 1000, // Increased for two variations
           decoding_method: "sample"
         },
-        // reset: true, // Uncomment this if you want to reset the model's context/history because of it's biased responses.
+        reset: true, // Uncomment this if you want to reset the model's context/history because of it's biased responses.
       },
       {
         headers: {
@@ -246,6 +246,9 @@ app.post("/api/ayrshare/post", async (req, res) => {
   const { text, platforms, mediaUrls } = req.body;
   const apiKey = process.env.AYRSHARE_API;
 
+  console.log('API Key (first 10 chars):', apiKey ? apiKey.substring(0, 10) + '...' : 'NOT SET');
+  console.log('Request body:', { text: text?.substring(0, 50) + '...', platforms, mediaUrls });
+
   if (!apiKey) {
     return res.status(500).json({ error: "Ayrshare API key not configured." });
   }
@@ -256,27 +259,105 @@ app.post("/api/ayrshare/post", async (req, res) => {
   try {
     // Use node-fetch for fetch API
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    
+    // Prepare the request body according to Ayrshare API specs
+    const requestBody = {
+      post: text,
+      platforms: platforms
+    };
+
+    // Add media URLs if provided
+    if (mediaUrls && Array.isArray(mediaUrls) && mediaUrls.length > 0) {
+      requestBody.mediaUrls = mediaUrls;
+    }
+
+    console.log('Sending request to Ayrshare:', JSON.stringify(requestBody, null, 2));
+
     const response = await fetch("https://api.ayrshare.com/api/post", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
+        "Authorization": `Bearer ${apiKey.trim()}`, // Trim any whitespace
+        "User-Agent": "NodeJS-App/1.0"
       },
-      body: JSON.stringify({
-        post: text,
-        platforms: platforms,
-        ...(mediaUrls ? { mediaUrls } : {})
-      })
+      body: JSON.stringify(requestBody)
     });
+
     const data = await response.json();
+    
+    console.log('Ayrshare response status:', response.status);
+    console.log('Ayrshare response headers:', Object.fromEntries(response.headers.entries()));
+    console.log('Ayrshare response data:', JSON.stringify(data, null, 2));
+
     if (!response.ok) {
-      return res.status(response.status).json({ error: data.error || "Ayrshare API error", details: data });
+      // Handle different error scenarios based on Ayrshare docs
+      let errorMessage = "Ayrshare API error";
+      
+      if (response.status === 403) {
+        errorMessage = "Access Denied: Your API key doesn't have permission for this request, or your User Profile might be suspended. Check your Ayrshare dashboard.";
+      } else if (response.status === 401) {
+        errorMessage = "Unauthorized: Invalid API key. Verify your API key in the Ayrshare dashboard.";
+      } else if (response.status === 400) {
+        errorMessage = "Bad Request: " + (data.error || data.message || "Invalid request format");
+      } else if (response.status === 429) {
+        errorMessage = "Rate limit exceeded. Wait before making more requests.";
+      }
+
+      return res.status(response.status).json({ 
+        error: errorMessage, 
+        details: data,
+        status: response.status,
+        headers: Object.fromEntries(response.headers.entries())
+      });
     }
+
     res.json(data);
   } catch (err) {
+    console.error('Ayrshare API error:', err);
     res.status(500).json({
       error: err.message || "Unknown error",
-      details: err
+      details: err.toString()
+    });
+  }
+});
+
+// Optional: Add a test endpoint to verify API key
+app.get("/api/ayrshare/test", async (req, res) => {
+  const apiKey = process.env.AYRSHARE_API;
+
+  if (!apiKey) {
+    return res.status(500).json({ error: "Ayrshare API key not configured." });
+  }
+
+  try {
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    
+    const response = await fetch("https://api.ayrshare.com/api/profiles", {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return res.status(response.status).json({ 
+        error: "API key test failed", 
+        details: data,
+        status: response.status 
+      });
+    }
+
+    res.json({ 
+      message: "API key is valid", 
+      profiles: data 
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: "Test failed: " + err.message,
+      details: err.toString()
     });
   }
 });
