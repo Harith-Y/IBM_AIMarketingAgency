@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 
+const API_BASE_URL = "https://marketing-agency-rakg.onrender.com";
+
 const RegisterPage = ({ setUser, showToast }) => {
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState('');
@@ -26,22 +28,19 @@ const RegisterPage = ({ setUser, showToast }) => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('/api/auth/register', {
+      const response = await axios.post(`${API_BASE_URL}/api/auth/register`, {
         email,
         password,
         firstName,
         lastName,
       });
 
-      if (response.status === 200 && response.data?.token) {
-        const token = response.data.token;
+      if (response.status === 200 ) {
 
-        localStorage.setItem('authToken', token);
-        setUser({ token });
         showToast('Registration successful!', 'success');
 
         // Redirect to dashboard
-        navigate('/dashboard');
+        navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
       } else {
         setError('Registration failed. Please try again.');
       }

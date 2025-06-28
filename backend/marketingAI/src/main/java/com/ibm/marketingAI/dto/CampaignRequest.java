@@ -12,8 +12,7 @@ public class CampaignRequest {
     public String brandName;
     public String audienceCategory;
     public String audienceType;
-    public String platForm;
+    public String productName;
     public int minAge;
     public int maxAge;
-    
 }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.ibm.marketingAI.dto.CampaignRequest;
 import com.ibm.marketingAI.dto.CampaignResponseDto;
+import com.ibm.marketingAI.dto.VersionDto;
 import com.ibm.marketingAI.model.AppUser;
 import com.ibm.marketingAI.model.CampaignResponse;
 import com.ibm.marketingAI.model.Metrics;
@@ -77,6 +78,14 @@ public class CampaignService {
         response.setVersionB(versionB);
         response.setOwner(user);
 
+        response.setAudienceCategory(input.getAudienceCategory());
+        response.setAudienceType(input.getAudienceType());
+        response.setBrandName(input.getBrandName());
+        response.setMaxAge(input.getMaxAge());
+        response.setMinAge(input.getMinAge());
+        response.setProductName(input.getProductName());
+        response.setTone(input.getTone());
+
         return campaignRepo.save(response);
     }
 
@@ -88,12 +97,22 @@ public class CampaignService {
         List<CampaignResponse> campaigns = responseRepo.findByOwner(user);
 
         return campaigns.stream()
-            .map(c -> new CampaignResponseDto(
-                c.getId(),
-                c.getVersionA(),
-                c.getVersionB()
-            ))
-            .collect(Collectors.toList());
+    .map(c -> {
+        CampaignResponseDto dto = new CampaignResponseDto();
+        dto.setId(c.getId());
+        dto.setTone(c.getTone());
+        dto.setBrandName(c.getBrandName());
+        dto.setAudienceCategory(c.getAudienceCategory());
+        dto.setAudienceType(c.getAudienceType());
+        dto.setProductName(c.getProductName());
+        dto.setMinAge(c.getMinAge());
+        dto.setMaxAge(c.getMaxAge());
+        dto.setVersionA(new VersionDto(c.getVersionA().getV_id(),c.getVersionA().getTitle(), c.getVersionA().getContent()));
+        dto.setVersionB(new VersionDto(c.getVersionB().getV_id(),c.getVersionA().getTitle(), c.getVersionB().getContent()));
+        return dto;
+    })
+    .collect(Collectors.toList());
+
     }
 
 

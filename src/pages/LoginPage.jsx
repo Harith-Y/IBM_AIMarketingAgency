@@ -4,6 +4,11 @@ import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 
+const API_BASE_URL = "https://marketing-agency-rakg.onrender.com";
+//const API_BASE_URL = "http://localhost:8080";
+
+
+
 const LoginPage = ({ setUser, showToast }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -20,12 +25,13 @@ const LoginPage = ({ setUser, showToast }) => {
     setIsLoading(true);
 
     try {
+      console.log("url is "+`${API_BASE_URL}/api/auth/login`);
       const response = await axios.post(
-        '/api/auth/login',
+        `${API_BASE_URL}/api/auth/login`,
         { email, password },
         {
           headers: { 'Content-Type': 'application/json' },
-          withCredentials: false,
+          withCredentials: true,
         }
       );
 

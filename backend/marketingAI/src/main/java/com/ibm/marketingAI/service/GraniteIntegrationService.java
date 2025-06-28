@@ -1,5 +1,6 @@
 package com.ibm.marketingAI.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -10,18 +11,22 @@ import org.springframework.web.client.RestTemplate;
 import com.ibm.marketingAI.dto.CampaignRequest;
 import com.ibm.marketingAI.model.CampaignResponse;
 
+
+
 @Service
 public class GraniteIntegrationService {
 
     private final RestTemplate restTemplate;
+
+    @Value("${nodejs.url}")
+    private String url;
 
     public GraniteIntegrationService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
     public CampaignResponse callGranite(CampaignRequest input) {
-        String url = "http://localhost:5000/api/generate";
-
+       
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
