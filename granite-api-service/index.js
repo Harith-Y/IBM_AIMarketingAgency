@@ -18,7 +18,7 @@ function generateMetrics() {
 
 // Helper to build prompts for A/B
 function buildPrompt(request) {
-  const { tone, brandName, audienceCategory, audienceType, minAge, maxAge, product, offer, season } = request;
+  const { tone, brandName, audienceCategory, audienceType, minAge, maxAge, productName } = request;
   
   // Determine ad type based on context (you can make this more dynamic)
   const adType = "marketing campaign";
@@ -28,7 +28,7 @@ function buildPrompt(request) {
 
 Brand Name: ${brandName}
 
-Product Name: ${product || 'N/A'}
+Product Name: ${productName || 'N/A'}
 
 Campaign Tone: ${tone} (e.g., playful, bold, premium, friendly, inspiring)
 
@@ -42,7 +42,7 @@ Platform: ${platform} (e.g., Instagram, Facebook, Google Ads, LinkedIn)
 ⚡ Make the language natural, engaging, and suited for the platform.
 ⚡ Suggest a CTA (Call to Action).
 
-Generate two variations to enable A/B testing. Label them clearly as "Variation A" and "Variation B". Make sure each response is strictly more than 50 words.`;
+Generate two unique variations to enable A/B testing. Label them clearly as "Variation A" and "Variation B". Make sure each version is strictly different and more than 50 words.`;
 }
 
 // Get IAM token from IBM
@@ -121,6 +121,88 @@ app.get("/api/test-models", async (req, res) => {
   }
 });
 
+// Helper to parse variations from AI response
+function parseVariations(content) {
+  if (!content) {
+    return {
+      contentA: "No content from A",
+      contentB: "No content from B"
+    };
+  }
+
+  // Try to find variations using different patterns
+  const patterns = [
+    /variation\s*a[:\s]*([\s\S]*?)(?=variation\s*b[:\s]*)/i,
+    /version\s*a[:\s]*([\s\S]*?)(?=version\s*b[:\s]*)/i,
+    /a[:\s]*([\s\S]*?)(?=b[:\s]*)/i
+  ];
+
+  for (const pattern of patterns) {
+    const match = content.match(pattern);
+    if (match) {
+      const contentA = match[1].trim();
+      // Find content after "Variation B" or "Version B"
+      const afterA = content.substring(match.index + match[0].length);
+      const bMatch = afterA.match(/(?:variation\s*b|version\s*b)[:\s]*([\s\S]*)/i);
+      const contentB = bMatch ? bMatch[1].trim() : afterA.trim();
+      
+      if (contentA && contentB && contentA !== contentB) {
+        return { contentA, contentB };
+      }
+    }
+  }
+
+  // If no clear variations found, try to split by common separators
+  const separators = [
+    /\n\s*\n/, // Double newlines
+    /\n\s*[-*]\s*\n/, // Lines with dashes or asterisks
+    /\n\s*[A-Z][a-z]+:/, // Lines starting with capitalized words followed by colon
+  ];
+
+  for (const separator of separators) {
+    const parts = content.split(separator).filter(part => part.trim());
+    if (parts.length >= 2) {
+      const contentA = parts[0].trim();
+      const contentB = parts[1].trim();
+      
+      if (contentA && contentB && contentA !== contentB) {
+        return { contentA, contentB };
+      }
+    }
+  }
+
+  // Last resort: split content in half
+  const lines = content.split('\n').filter(line => line.trim() !== '');
+  const midPoint = Math.floor(lines.length / 2);
+  const contentA = lines.slice(0, midPoint).join('\n').trim();
+  const contentB = lines.slice(midPoint).join('\n').trim();
+  
+  // If splitting resulted in empty content, create two different versions
+  if (!contentA || !contentB || contentA === contentB) {
+    // Create two variations by modifying the content slightly
+    const baseContent = contentA || contentB || content;
+    const contentA_final = baseContent;
+    const contentB_final = baseContent.replace(/\b(amazing|incredible|fantastic|wonderful)\b/gi, 
+      (match) => {
+        const alternatives = {
+          'amazing': 'exceptional',
+          'incredible': 'remarkable', 
+          'fantastic': 'outstanding',
+          'wonderful': 'excellent'
+        };
+        return alternatives[match.toLowerCase()] || match;
+      }
+    );
+    
+    return { 
+      contentA: contentA_final, 
+      contentB: contentB_final !== contentA_final ? contentB_final : contentA_final + "\n\nAlternative approach: " + baseContent 
+    };
+  }
+  
+  return { contentA, contentB };
+}
+
 // Updated main generation route
 app.post("/api/dashboard/post", async (req, res) => {
   const request = req.body;
@@ -158,34 +240,7 @@ app.post("/api/dashboard/post", async (req, res) => {
     const content = response.data.results?.[0]?.generated_text || "No content generated";
 
     // Parse the response to extract both variations
-    let contentA = "No content from A";
-    let contentB = "No content from B";
-    
-    if (content) {
-      // Try to split by variation labels with more flexible matching
-      const variationASplit = content.split(/variation a|version a|variation a:|version a:/i);
-      const variationBSplit = content.split(/variation b|version b|variation b:|version b:/i);
-      
-      if (variationASplit.length > 1 && variationBSplit.length > 1) {
-        // Extract content between variations
-        const fullContent = variationASplit[1];
-        const bSplit = fullContent.split(/variation b|version b|variation b:|version b:/i);
-        contentA = bSplit[0].trim();
-        contentB = bSplit[1] ? bSplit[1].trim() : "No content from B";
-      } else {
-        // If we can't parse variations, split the content in half
-        const lines = content.split('\n').filter(line => line.trim() !== '');
-        const midPoint = Math.floor(lines.length / 2);
-        contentA = lines.slice(0, midPoint).join('\n').trim();
-        contentB = lines.slice(midPoint).join('\n').trim();
-        
-        // If splitting resulted in empty content, use the full content for both
-        if (!contentA || !contentB) {
-          contentA = content;
-          contentB = content;
-        }
-      }
-    }
+    const { contentA, contentB } = parseVariations(content);
 
     res.json({
       versionA: {
