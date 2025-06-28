@@ -24,7 +24,7 @@ function buildPrompt(request) {
   const adType = "marketing campaign";
   const platform = "multi-platform"; // You can make this dynamic based on user selection
   
-  return `You are an expert marketing copywriter. Create a compelling ${adType} for the following product:
+  return `Good. You are an expert marketing copywriter. Create a compelling ${adType} for the following product:
 
 Brand Name: ${brandName}
 
@@ -156,7 +156,7 @@ async function getEstimatedMetrics(content, token, endpoint, projectId) {
           max_new_tokens: 100,
           decoding_method: "sample"
         },
-        reset: true
+        // reset: true // Uncomment this if you want to reset the model's context/history because of it's biased responses.
       },
       {
         headers: {
@@ -204,7 +204,7 @@ app.post("/api/dashboard/post", async (req, res) => {
           max_new_tokens: 1000, // Increased for two variations
           decoding_method: "sample"
         },
-        reset: true
+        // reset: true, // Uncomment this if you want to reset the model's context/history because of it's biased responses.
       },
       {
         headers: {
