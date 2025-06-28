@@ -33,7 +33,13 @@ const Dashboard = ({ user, onLogout, showToast }) => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/dashboard/post`, request);
+      const token = localStorage.getItem('authToken');
+      const response = await axios.post(`${API_BASE_URL}/dashboard/post`, request, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       const content = response.data;
 
       setGeneratedContent(content);
