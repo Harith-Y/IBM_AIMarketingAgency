@@ -67,25 +67,19 @@ function parseVariations(content) {
     };
   }
 
-  // Try to find variations using different patterns
-  const patterns = [
-    /variation\s*a[:\s]*([\s\S]*?)(?=variation\s*b[:\s]*)/i,
-    /version\s*a[:\s]*([\s\S]*?)(?=version\s*b[:\s]*)/i,
-    /a[:\s]*([\s\S]*?)(?=b[:\s]*)/i
-  ];
-
-  for (const pattern of patterns) {
-    const match = content.match(pattern);
-    if (match) {
-      const contentA = match[1].trim();
-      // Find content after "Variation B" or "Version B"
-      const afterA = content.substring(match.index + match[0].length);
-      const bMatch = afterA.match(/(?:variation\s*b|version\s*b)[:\s]*([\s\S]*)/i);
-      const contentB = bMatch ? bMatch[1].trim() : afterA.trim();
-      
-      if (contentA && contentB && contentA !== contentB) {
-        return { contentA, contentB };
-      }
+  // Improved regex to match 'Variation A:' or 'Version A:' at the start of a line, and avoid partial matches
+  const pattern = /(?:^|\n)\s*(variation|version)\s*a\s*[:\-\.]?\s*([\s\S]*?)(?=(?:^|\n)\s*(variation|version)\s*b\s*[:\-\.]?)/i;
+  const match = content.match(pattern);
+  if (match) {
+    const contentA = match[2].trim();
+    // Find content after 'Variation B' or 'Version B'
+    const afterA = content.substring(match.index + match[0].length);
+    // Find the next label (if any) and extract only the content
+    const bPattern = /(?:^|\n)\s*(variation|version)\s*b\s*[:\-\.]?\s*([\s\S]*)/i;
+    const bMatch = afterA.match(bPattern);
+    const contentB = bMatch ? bMatch[2].trim() : afterA.trim();
+    if (contentA && contentB && contentA !== contentB) {
+      return { contentA, contentB };
     }
   }
 
@@ -101,7 +95,6 @@ function parseVariations(content) {
     if (parts.length >= 2) {
       const contentA = parts[0].trim();
       const contentB = parts[1].trim();
-      
       if (contentA && contentB && contentA !== contentB) {
         return { contentA, contentB };
       }
@@ -113,7 +106,7 @@ function parseVariations(content) {
   const midPoint = Math.floor(lines.length / 2);
   const contentA = lines.slice(0, midPoint).join('\n').trim();
   const contentB = lines.slice(midPoint).join('\n').trim();
-  
+
   // If splitting resulted in empty content, create two different versions
   if (!contentA || !contentB || contentA === contentB) {
     // Create two variations by modifying the content slightly
@@ -130,13 +123,12 @@ function parseVariations(content) {
         return alternatives[match.toLowerCase()] || match;
       }
     );
-    
     return { 
       contentA: contentA_final, 
       contentB: contentB_final !== contentA_final ? contentB_final : contentA_final + "\n\nAlternative approach: " + baseContent 
     };
   }
-  
+
   return { contentA, contentB };
 }
 
