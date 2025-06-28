@@ -21,6 +21,7 @@ const Navbar = ({ user, onLogout }) => {
             className="flex items-center space-x-3"
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 300 }}
+            onClick={() => navigate('/dashboard')}
           >
             <div className="relative">
               <motion.div
