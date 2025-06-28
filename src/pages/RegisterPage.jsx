@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
+import axios from 'axios';
 
-const RegisterPage = ({ onRegister }) => {
+const RegisterPage = ({ setUser, showToast }) => {
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -11,21 +12,51 @@ const RegisterPage = ({ onRegister }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     if (password !== confirmPassword) {
-      alert("Passwords don't match!");
+      setError("Passwords don't match!");
       return;
     }
 
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    const success = onRegister(email, password, firstName, lastName);
-    setIsLoading(false);
 
-    if (success) {
-      navigate('/login');
+    try {
+      const response = await axios.post('/api/auth/register', {
+        email,
+        password,
+        firstName,
+        lastName,
+      });
+
+      if (response.status === 200 && response.data?.token) {
+        const token = response.data.token;
+
+        localStorage.setItem('authToken', token);
+        setUser({ token });
+        showToast('Registration successful!', 'success');
+
+        // Redirect to dashboard
+        navigate('/dashboard');
+      } else {
+        setError('Registration failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+
+      if (error.response) {
+        setError(error.response.data?.message || 'Registration failed. Please try again.');
+      } else if (error.request) {
+        setError('Network error. Please check your connection and try again.');
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -90,7 +121,17 @@ const RegisterPage = ({ onRegister }) => {
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl" />
           <div className="relative p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* First Name */}
+              {error && (
+                <motion.div
+                  className="bg-red-500/20 border border-red-500/30 rounded-2xl p-4 text-red-200 text-sm"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {error}
+                </motion.div>
+              )}
+
               <div>
                 <label className="block text-sm font-semibold text-gray-200 mb-3">First Name</label>
                 <input
@@ -100,10 +141,10 @@ const RegisterPage = ({ onRegister }) => {
                   onChange={(e) => setFirstName(e.target.value)}
                   className="w-full px-4 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all duration-300 backdrop-blur-sm"
                   placeholder="Enter your first name"
+                  disabled={isLoading}
                 />
               </div>
 
-              {/* Last Name */}
               <div>
                 <label className="block text-sm font-semibold text-gray-200 mb-3">Last Name</label>
                 <input
@@ -113,10 +154,10 @@ const RegisterPage = ({ onRegister }) => {
                   onChange={(e) => setLastName(e.target.value)}
                   className="w-full px-4 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all duration-300 backdrop-blur-sm"
                   placeholder="Enter your last name"
+                  disabled={isLoading}
                 />
               </div>
 
-              {/* Email */}
               <div>
                 <label className="block text-sm font-semibold text-gray-200 mb-3">Email Address</label>
                 <input
@@ -126,10 +167,10 @@ const RegisterPage = ({ onRegister }) => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all duration-300 backdrop-blur-sm"
                   placeholder="Enter your email"
+                  disabled={isLoading}
                 />
               </div>
 
-              {/* Password */}
               <div>
                 <label className="block text-sm font-semibold text-gray-200 mb-3">Password</label>
                 <input
@@ -139,10 +180,10 @@ const RegisterPage = ({ onRegister }) => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all duration-300 backdrop-blur-sm"
                   placeholder="Create a password"
+                  disabled={isLoading}
                 />
               </div>
 
-              {/* Confirm Password */}
               <div>
                 <label className="block text-sm font-semibold text-gray-200 mb-3">Confirm Password</label>
                 <input
@@ -152,20 +193,20 @@ const RegisterPage = ({ onRegister }) => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full px-4 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all duration-300 backdrop-blur-sm"
                   placeholder="Confirm your password"
+                  disabled={isLoading}
                 />
               </div>
 
-              {/* Submit Button */}
               <motion.button
                 type="submit"
                 disabled={isLoading}
                 className="w-full relative overflow-hidden bg-gradient-to-r from-cyan-500 to-purple-600 text-white py-4 px-6 rounded-2xl font-semibold shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                whileHover={{ scale: 1.02, y: -2 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: isLoading ? 1 : 1.02, y: isLoading ? 0 : -2 }}
+                whileTap={{ scale: isLoading ? 1 : 0.98 }}
               >
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-500 opacity-0"
-                  whileHover={{ opacity: 1 }}
+                  whileHover={{ opacity: isLoading ? 0 : 1 }}
                   transition={{ duration: 0.3 }}
                 />
                 <div className="relative flex items-center justify-center space-x-3">
@@ -185,7 +226,6 @@ const RegisterPage = ({ onRegister }) => {
               </motion.button>
             </form>
 
-            {/* Links */}
             <div className="mt-8 text-center space-y-4">
               <div className="text-gray-400 text-sm">
                 Already have an account?{' '}
@@ -194,6 +234,7 @@ const RegisterPage = ({ onRegister }) => {
                   onClick={() => navigate('/login')}
                   className="text-purple-400 hover:text-purple-300 transition-colors duration-300 font-medium"
                   whileHover={{ scale: 1.05 }}
+                  disabled={isLoading}
                 >
                   Login
                 </motion.button>
