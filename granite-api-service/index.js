@@ -17,32 +17,13 @@ function generateMetrics() {
 }
 
 // Helper to build prompts for A/B
-function buildPrompt(request) {
-  const { tone, brandName, audienceCategory, audienceType, minAge, maxAge, product, offer, season } = request;
-  
-  // Determine ad type based on context (you can make this more dynamic)
-  const adType = "marketing campaign";
-  const platform = "multi-platform"; // You can make this dynamic based on user selection
-  
-  return `You are an expert marketing copywriter. Create a compelling ${adType} for the following product:
-
-Brand Name: ${brandName}
-
-Product Name: ${product || 'N/A'}
-
-Campaign Tone: ${tone} (e.g., playful, bold, premium, friendly, inspiring)
-
-Target Audience: ${audienceCategory} (${audienceType})
-
-Age Range: ${minAge}-${maxAge}
-
-Platform: ${platform} (e.g., Instagram, Facebook, Google Ads, LinkedIn)
-
-⚡ Ensure the ad appeals to the specified age group and tone.
-⚡ Make the language natural, engaging, and suited for the platform.
-⚡ Suggest a CTA (Call to Action).
-
-Generate two variations to enable A/B testing. Label them clearly as "Variation A" and "Variation B".`;
+function buildPrompt(request, version) {
+  const { tone, brandName, audienceCategory, audienceType, minAge, maxAge } = request;
+  if (version === 'A') {
+    return `Create a ${tone.toLowerCase()} marketing campaign for ${brandName}. Target audience: ${audienceCategory}, ${audienceType}, ages ${minAge}-${maxAge}. Version A.`;
+  } else {
+    return `Write a ${tone.toLowerCase()} promotional message for ${brandName} aimed at ${audienceCategory} (${audienceType}), ages ${minAge}-${maxAge}. Version B.`;
+  }
 }
 
 // Get IAM token from IBM
@@ -135,22 +116,37 @@ app.post("/api/dashboard/post", async (req, res) => {
     // Try to find a working model first
     const workingModel = await findWorkingModel(token, endpoint, process.env.IBM_PROJECT_ID, "Test prompt");
 
-    const response = await axios.post(
-      endpoint,
-      {
-        model_id: workingModel,
-        input: prompt,
-        project_id: process.env.IBM_PROJECT_ID,
-        parameters: {
-          temperature: 0.8,
-          max_new_tokens: 1000, // Increased for two variations
-          decoding_method: "sample"
+    const [responseA, responseB] = await Promise.all([
+      axios.post(
+        endpoint,
+        {
+          model_id: workingModel,
+          input: promptA,
+          project_id: process.env.IBM_PROJECT_ID,
+          parameters: {
+            temperature: 0.7,
+            max_new_tokens: 300,
+            decoding_method: "sample",
+          },
         },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      ),
+      axios.post(
+        endpoint,
+        {
+          model_id: workingModel,
+          input: promptB,
+          project_id: process.env.IBM_PROJECT_ID,
+          parameters: {
+            temperature: 0.7,
+            max_new_tokens: 300,
+            decoding_method: "sample",
+          },
         },
       }
     );
