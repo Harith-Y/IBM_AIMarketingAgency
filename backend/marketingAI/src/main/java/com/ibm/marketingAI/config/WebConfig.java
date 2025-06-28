@@ -12,7 +12,7 @@ public class WebConfig implements WebMvcConfigurer {
   @Override
   public void addCorsMappings(CorsRegistry registry) {
     registry.addMapping("/**")
-            .allowedOrigins("https://*.vercel.app") // React origin
+            .allowedOrigins("https://aipoweredmarketingcontentgenerator.vercel.app") 
             .allowedMethods("GET", "POST", "PUT", "DELETE")
             .allowedHeaders("*")
             .allowCredentials(true);
