@@ -8,7 +8,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const AYRSHARE_API_KEY = "4E8-B2751D5D-E3CA40CF"; 
+const AYRSHARE_API_KEY = import.meta.env.AYRSHARE_API_KEY;
 
 const Dashboard = ({ onLogout, showToast }) => {
   const [isLoading, setIsLoading] = useState(false);
