@@ -143,9 +143,9 @@ const OutputSection = ({ content, showToast }) => {
               </div>
             </div>
 
-            <div className="bg-white/5 rounded-2xl p-4 mb-4 backdrop-blur-sm border border-white/10">
-              <h5 className="text-sm text-gray-400 mb-2">Expected Performance Metrics</h5>
-            </div>
+            <h3 className="text-xl font-semibold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+              Expected Performance Metrics
+            </h3>
 
             <div className="grid grid-cols-3 gap-2 text-center">
               <motion.div 
@@ -239,9 +239,10 @@ const OutputSection = ({ content, showToast }) => {
               </div>
             </div>
 
-            <div className="bg-white/5 rounded-2xl p-4 mb-4 backdrop-blur-sm border border-white/10">
-              <h5 className="text-sm text-gray-400 mb-2">Expected Performance Metrics</h5>
-            </div>
+            <h3 className="text-xl font-semibold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+              Expected Performance Metrics
+            </h3>
+      
 
             <div className="grid grid-cols-3 gap-2 text-center">
               <motion.div 
