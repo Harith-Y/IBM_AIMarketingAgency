@@ -7,29 +7,47 @@ import ABChart from '../components/ABChart';
 import LoadingSpinner from '../components/LoadingSpinner';
 import axios from 'axios';
 
-const API_BASE_URL = "http://localhost:8080/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Dashboard = ({ user, onLogout, showToast }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedContent, setGeneratedContent] = useState(null);
 
+
+
+  const saveToHistory = (request, content) => {
+    const prev = JSON.parse(localStorage.getItem('generated_history')) || [];
+    const newEntry = {
+      timestamp: new Date().toISOString(),
+      request,
+      content: {
+          versionA: content.versionA,
+          versionB: content.versionB
+        }
+    };
+    localStorage.setItem('generated_history', JSON.stringify([newEntry, ...prev]));
+  };
+
+
   const generateContent = async (request) => {
-  setIsLoading(true);
+    setIsLoading(true);
 
-  try {
-    const response = await axios.post(`${API_BASE_URL}/dashboard/post`, request);
+    try {
+      const response = await axios.post(`${API_BASE_URL}/dashboard/post`, request);
+      const content = response.data;
 
-    const mockContent = response.data; // versionA and versionB
+      setGeneratedContent(content);
+      showToast("Content generated successfully!", "success");
 
-    setGeneratedContent(mockContent);
-    showToast("Content generated successfully!", "success");
-  } catch (error) {
-    console.error("Content generation failed:", error);
-    showToast("Failed to generate content. Please try again.", "error");
-  } finally {
-    setIsLoading(false);
-  }
-};
+      // Save to history
+      saveToHistory(request, content);
+    } catch (error) {
+      console.error("Content generation failed:", error);
+      showToast("Failed to generate content. Please try again.", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const resetContent = () => {
     setGeneratedContent(null);
@@ -60,7 +78,6 @@ const Dashboard = ({ user, onLogout, showToast }) => {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Content Form */}
           <motion.div 
             className="lg:col-span-1"
             initial={{ opacity: 0, x: -50 }}
@@ -74,7 +91,6 @@ const Dashboard = ({ user, onLogout, showToast }) => {
             />
           </motion.div>
 
-          {/* Output Section */}
           <motion.div 
             className="lg:col-span-2 space-y-8"
             initial={{ opacity: 0, x: 50 }}
@@ -138,7 +154,6 @@ const Dashboard = ({ user, onLogout, showToast }) => {
           </motion.div>
         </div>
 
-        {/* ABChart outside the grid for full width */}
         {generatedContent && !isLoading && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

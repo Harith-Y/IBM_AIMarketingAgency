@@ -18,11 +18,12 @@ function generateMetrics() {
 
 // Helper to build prompts for A/B
 function buildPrompt(request, version) {
-  const { tone, brandName, audienceCategory, audienceType, minAge, maxAge } = request;
+  const { tone, brandName, audienceCategory, audienceType, minAge, maxAge, product, offer, season } = request;
+  // Add more creative and distinct instructions for A/B
   if (version === 'A') {
-    return `Create a ${tone.toLowerCase()} marketing campaign for ${brandName}. Target audience: ${audienceCategory}, ${audienceType}, ages ${minAge}-${maxAge}. Version A.`;
+    return `You are a creative marketing copywriter. Write a highly engaging, ${tone.toLowerCase()} campaign for ${brandName} targeting ${audienceCategory} (${audienceType}), ages ${minAge}-${maxAge}. Compose a detailed, multi-paragraph campaign that includes an attention-grabbing hook, a compelling story or scenario, emotional appeal, a unique value proposition, and a strong call to action. Use vivid language, specific examples, and persuasive techniques. Make it suitable for ${season || 'the current season'}. If a product or offer is provided, weave it in: Product: ${product || 'N/A'}, Offer: ${offer || 'N/A'}. Ensure the response is comprehensive and not less than 200 words. Label this as Version A.`;
   } else {
-    return `Write a ${tone.toLowerCase()} promotional message for ${brandName} aimed at ${audienceCategory} (${audienceType}), ages ${minAge}-${maxAge}. Version B.`;
+    return `As an expert in persuasive marketing, craft a ${tone.toLowerCase()} promotional message for ${brandName} aimed at ${audienceCategory} (${audienceType}), ages ${minAge}-${maxAge}. Start with a relatable scenario or question, use storytelling, and include a creative twist or surprise. Make it feel fresh and different from typical ads. If a product or offer is provided, integrate it naturally: Product: ${product || 'N/A'}, Offer: ${offer || 'N/A'}. Make it seasonally relevant for ${season || 'the current season'}. Ensure the response is comprehensive and not less than 200 words. Label this as Version B.`;
   }
 }
 
@@ -103,7 +104,7 @@ app.get("/api/test-models", async (req, res) => {
 });
 
 // Updated main generation route
-app.post("/api/generate", async (req, res) => {
+app.post("/api/dashboard/post", async (req, res) => {
   const request = req.body;
 
   try {
@@ -125,9 +126,9 @@ app.post("/api/generate", async (req, res) => {
           input: promptA,
           project_id: process.env.IBM_PROJECT_ID,
           parameters: {
-            temperature: 0.7,
-            max_new_tokens: 300,
-            decoding_method: "sample",
+            temperature: 0.8,
+            max_new_tokens: 600,
+            decoding_method: "sample"
           },
         },
         {
@@ -144,9 +145,9 @@ app.post("/api/generate", async (req, res) => {
           input: promptB,
           project_id: process.env.IBM_PROJECT_ID,
           parameters: {
-            temperature: 0.7,
-            max_new_tokens: 300,
-            decoding_method: "sample",
+            temperature: 0.8,
+            max_new_tokens: 600,
+            decoding_method: "sample"
           },
         },
         {

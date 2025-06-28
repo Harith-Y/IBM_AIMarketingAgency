@@ -158,6 +158,19 @@ const ContentForm = ({ onSubmit, isLoading, onReset }) => {
           </motion.div>
 
           {/* Product Name */}
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.75, duration: 0.5 }}>
+            <label className="block text-sm font-semibold text-gray-200 mb-2">Product Name</label>
+            <motion.input
+              type="text"
+              value={formData.productName}
+              onChange={(e) => updateField('productName', e.target.value)}
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-400/50 transition-all duration-300 backdrop-blur-sm"
+              placeholder="e.g., AI Marketing Tool, Fitness Band"
+              required
+              whileFocus={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            />
+          </motion.div>
           
 
           {/* Social Media Platform */}
