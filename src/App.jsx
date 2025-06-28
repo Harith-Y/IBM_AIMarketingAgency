@@ -12,9 +12,9 @@ const App = () => {
   const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('marketingai_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      setUser({ token });
     }
   }, []);
 
@@ -28,35 +28,10 @@ const App = () => {
     }, 4000);
   };
 
-  const login = (email, password) => {
-    const users = JSON.parse(localStorage.getItem('marketingai_users')) || [];
-    const match = users.find(u => u.email === email && u.password === password);
-    if (match) {
-      localStorage.setItem('marketingai_user', JSON.stringify(match));
-      setUser(match);
-      showToast('Logged in successfully!', 'success');
-      return true;
-    }
-    showToast('Invalid credentials.', 'error');
-    return false;
-  };
-
-  const register = (email, password, firstName, lastName) => {
-    const users = JSON.parse(localStorage.getItem('marketingai_users')) || [];
-    if (users.some(u => u.email === email)) {
-      showToast('Email already exists.', 'error');
-      return false;
-    }
-    const newUser = { email, password, firstName, lastName };
-    localStorage.setItem('marketingai_users', JSON.stringify([...users, newUser]));
-    showToast('Registration successful! Please log in.', 'success');
-    return true;
-  };
-
   const logout = () => {
-    localStorage.removeItem('marketingai_user');
+    localStorage.removeItem('authToken');
     setUser(null);
-    showToast('You have been logged out.', 'info');
+    showToast('Logged out successfully!', 'success');
   };
 
   return (
@@ -98,7 +73,7 @@ const App = () => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.5, ease: 'easeInOut' }}
                 >
-                  <LoginPage onLogin={login} />
+                  <LoginPage showToast={showToast} setUser={setUser} />
                 </motion.div>
               }
             />
@@ -112,7 +87,7 @@ const App = () => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.5, ease: 'easeInOut' }}
                 >
-                  <RegisterPage onRegister={register} />
+                  <RegisterPage showToast={showToast} setUser={setUser} />
                 </motion.div>
               }
             />
@@ -134,13 +109,6 @@ const App = () => {
                 )
               }
             />
-
-            {/* Catch-all route for any undefined path */}
-            <Route
-              path="*"
-              element={<Navigate to={user ? '/dashboard' : '/login'} replace />}
-            />
-
             <Route
               path="/history"
               element={
@@ -152,12 +120,16 @@ const App = () => {
                     exit={{ opacity: 0, y: -30 }}
                     transition={{ duration: 0.5, ease: 'easeInOut' }}
                   >
-                    <HistoryPage user={user} showToast={showToast} />
+                    <HistoryPage user={user} onLogout={logout} showToast={showToast} />
                   </motion.div>
                 ) : (
                   <Navigate to="/login" replace />
                 )
               }
+            />
+            <Route
+              path="*"
+              element={<Navigate to={user ? '/dashboard' : '/login'} replace />}
             />
           </Routes>
         </AnimatePresence>

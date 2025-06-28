@@ -194,8 +194,8 @@ app.post("/api/dashboard/post", async (req, res) => {
         content: contentB,
         metrics: generateMetrics(),
       },
-      modelUsed: workingModel,
-      rawResponse: content // Include raw response for debugging
+      // modelUsed: workingModel
+
     });
   } catch (err) {
     console.error("Full error:", err.response?.data || err.message);
