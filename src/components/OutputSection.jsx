@@ -143,6 +143,10 @@ const OutputSection = ({ content, showToast }) => {
               </div>
             </div>
 
+            <div className="bg-white/5 rounded-2xl p-4 mb-4 backdrop-blur-sm border border-white/10">
+              <h5 className="text-sm text-gray-400 mb-2">Expected Performance Metrics</h5>
+            </div>
+
             <div className="grid grid-cols-3 gap-2 text-center">
               <motion.div 
                 className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-3 backdrop-blur-sm border border-white/10"
@@ -233,6 +237,10 @@ const OutputSection = ({ content, showToast }) => {
               <div className="text-gray-300 text-sm whitespace-pre-line leading-relaxed">
                 {content.versionB.content}
               </div>
+            </div>
+
+            <div className="bg-white/5 rounded-2xl p-4 mb-4 backdrop-blur-sm border border-white/10">
+              <h5 className="text-sm text-gray-400 mb-2">Expected Performance Metrics</h5>
             </div>
 
             <div className="grid grid-cols-3 gap-2 text-center">
