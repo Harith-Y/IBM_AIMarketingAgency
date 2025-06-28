@@ -14,7 +14,8 @@ public class WebConfig implements WebMvcConfigurer {
     registry.addMapping("/**")
             .allowedOrigins("https://*.vercel.app","http://localhost:5173") // React origin
             .allowedMethods("GET", "POST", "PUT", "DELETE")
-            .allowedHeaders("*");
+            .allowedHeaders("*")
+            .allowCredentials(true);
   }
 
     @Bean
