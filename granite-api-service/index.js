@@ -156,6 +156,7 @@ async function getEstimatedMetrics(content, token, endpoint, projectId) {
           max_new_tokens: 100,
           decoding_method: "sample"
         },
+        reset: true
       },
       {
         headers: {
@@ -203,6 +204,7 @@ app.post("/api/dashboard/post", async (req, res) => {
           max_new_tokens: 1000, // Increased for two variations
           decoding_method: "sample"
         },
+        reset: true
       },
       {
         headers: {
