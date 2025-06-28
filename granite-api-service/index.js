@@ -8,13 +8,13 @@ app.use(express.json());
 app.use(cors()); 
 
 // Helper to generate random metrics
-function generateMetrics() {
-  return {
-    openRate: Math.round(Math.random() * 20 + 65),
-    clickThroughRate: Math.round(Math.random() * 8 + 12),
-    conversionRate: Math.round(Math.random() * 5 + 8),
-  };
-}
+// function generateMetrics() {
+//   return {
+//     openRate: Math.round(Math.random() * 20 + 65),
+//     clickThroughRate: Math.round(Math.random() * 8 + 12),
+//     conversionRate: Math.round(Math.random() * 5 + 8),
+//   };
+// }
 
 // Helper to build prompts for A/B
 function buildPrompt(request) {
@@ -58,69 +58,6 @@ async function getIAMToken() {
   return response.data.access_token;
 }
 
-// Array of potential model IDs to try
-const POTENTIAL_MODELS = [
-  "ibm/granite-13b-instruct-v2",
-  "ibm/granite-3-8b-instruct"
-];
-
-// Function to test which model works
-async function findWorkingModel(token, endpoint, projectId, testPrompt) {
-  for (const modelId of POTENTIAL_MODELS) {
-    try {
-      console.log(`Testing model: ${modelId}`);
-      const response = await axios.post(
-        endpoint,
-        {
-          model_id: modelId,
-          input: testPrompt,
-          project_id: projectId,
-          parameters: {
-            temperature: 0.7,
-            max_new_tokens: 50,
-            decoding_method: "sample",
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      
-      console.log(`✅ Working model found: ${modelId}`);
-      return modelId;
-    } catch (error) {
-      console.log(`❌ Model ${modelId} failed:`, error.response?.data?.errors?.[0]?.message || error.message);
-    }
-  }
-  throw new Error("No working model found");
-}
-
-// Test endpoint to find working model
-app.get("/api/test-models", async (req, res) => {
-  try {
-    const token = await getIAMToken();
-    const endpoint = `https://${process.env.REGION}.ml.cloud.ibm.com/ml/v1-beta/generation/text?version=2024-05-29`;
-    const testPrompt = "Hello, this is a test.";
-    
-    const workingModel = await findWorkingModel(token, endpoint, process.env.IBM_PROJECT_ID, testPrompt);
-    
-    res.json({
-      success: true,
-      workingModel: workingModel,
-      message: `Found working model: ${workingModel}`
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      message: "No working models found. Please check the available models in your watsonx.ai instance."
-    });
-  }
-});
-
 // Helper to parse variations from AI response
 function parseVariations(content) {
   if (!content) {
@@ -130,25 +67,19 @@ function parseVariations(content) {
     };
   }
 
-  // Try to find variations using different patterns
-  const patterns = [
-    /variation\s*a[:\s]*([\s\S]*?)(?=variation\s*b[:\s]*)/i,
-    /version\s*a[:\s]*([\s\S]*?)(?=version\s*b[:\s]*)/i,
-    /a[:\s]*([\s\S]*?)(?=b[:\s]*)/i
-  ];
-
-  for (const pattern of patterns) {
-    const match = content.match(pattern);
-    if (match) {
-      const contentA = match[1].trim();
-      // Find content after "Variation B" or "Version B"
-      const afterA = content.substring(match.index + match[0].length);
-      const bMatch = afterA.match(/(?:variation\s*b|version\s*b)[:\s]*([\s\S]*)/i);
-      const contentB = bMatch ? bMatch[1].trim() : afterA.trim();
-      
-      if (contentA && contentB && contentA !== contentB) {
-        return { contentA, contentB };
-      }
+  // Improved regex to match 'Variation A:' or 'Version A:' at the start of a line, and avoid partial matches
+  const pattern = /(?:^|\n)\s*(variation|version)\s*a\s*[:\-\.]?\s*([\s\S]*?)(?=(?:^|\n)\s*(variation|version)\s*b\s*[:\-\.]?)/i;
+  const match = content.match(pattern);
+  if (match) {
+    const contentA = match[2].trim();
+    // Find content after 'Variation B' or 'Version B'
+    const afterA = content.substring(match.index + match[0].length);
+    // Find the next label (if any) and extract only the content
+    const bPattern = /(?:^|\n)\s*(variation|version)\s*b\s*[:\-\.]?\s*([\s\S]*)/i;
+    const bMatch = afterA.match(bPattern);
+    const contentB = bMatch ? bMatch[2].trim() : afterA.trim();
+    if (contentA && contentB && contentA !== contentB) {
+      return { contentA, contentB };
     }
   }
 
@@ -164,7 +95,6 @@ function parseVariations(content) {
     if (parts.length >= 2) {
       const contentA = parts[0].trim();
       const contentB = parts[1].trim();
-      
       if (contentA && contentB && contentA !== contentB) {
         return { contentA, contentB };
       }
@@ -176,7 +106,7 @@ function parseVariations(content) {
   const midPoint = Math.floor(lines.length / 2);
   const contentA = lines.slice(0, midPoint).join('\n').trim();
   const contentB = lines.slice(midPoint).join('\n').trim();
-  
+
   // If splitting resulted in empty content, create two different versions
   if (!contentA || !contentB || contentA === contentB) {
     // Create two variations by modifying the content slightly
@@ -193,14 +123,51 @@ function parseVariations(content) {
         return alternatives[match.toLowerCase()] || match;
       }
     );
-    
     return { 
       contentA: contentA_final, 
       contentB: contentB_final !== contentA_final ? contentB_final : contentA_final + "\n\nAlternative approach: " + baseContent 
     };
   }
-  
+
   return { contentA, contentB };
+}
+
+// Helper to get estimated metrics from IBM model
+async function getEstimatedMetrics(content, token, endpoint, projectId) {
+  const metricsPrompt = `Given the following marketing campaign content, estimate the following metrics for a typical digital campaign targeting the specified audience: Open Rate (%), Click-Through Rate (%), and Conversion Rate (%).\n\nContent:\n${content}\n\nRespond in JSON format as {\"openRate\": number, \"clickThroughRate\": number, \"conversionRate\": number}.`;
+
+  try {
+    const response = await axios.post(
+      endpoint,
+      {
+        model_id: "ibm/granite-3-8b-instruct",
+        input: metricsPrompt,
+        project_id: projectId,
+        parameters: {
+          temperature: 0.2,
+          max_new_tokens: 100,
+          decoding_method: "sample"
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const text = response.data.results?.[0]?.generated_text || "";
+    // Try to parse JSON from the response
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) {
+      return JSON.parse(match[0]);
+    }
+    // Fallback: return null if parsing fails
+    return null;
+  } catch (err) {
+    console.error("Error getting estimated metrics:", err.response?.data || err.message);
+    return null;
+  }
 }
 
 // Updated main generation route
@@ -214,8 +181,8 @@ app.post("/api/dashboard/post", async (req, res) => {
 
     const endpoint = `https://${process.env.REGION}.ml.cloud.ibm.com/ml/v1-beta/generation/text?version=2024-05-29`;
 
-    // Try to find a working model first
-    const workingModel = await findWorkingModel(token, endpoint, process.env.IBM_PROJECT_ID, "Test prompt");
+    // Use a fixed model for content generation
+    const workingModel = "ibm/granite-13b-instruct-v2";
 
     const response = await axios.post(
       endpoint,
@@ -242,16 +209,22 @@ app.post("/api/dashboard/post", async (req, res) => {
     // Parse the response to extract both variations
     const { contentA, contentB } = parseVariations(content);
 
+    // Get estimated metrics for each version
+    const [metricsA, metricsB] = await Promise.all([
+      getEstimatedMetrics(contentA, token, endpoint, process.env.IBM_PROJECT_ID),
+      getEstimatedMetrics(contentB, token, endpoint, process.env.IBM_PROJECT_ID)
+    ]);
+
     res.json({
       versionA: {
         title: `${request.tone} ${request.brandName} Campaign - Version A`,
         content: contentA,
-        metrics: generateMetrics(),
+        metrics: metricsA || { openRate: null, clickThroughRate: null, conversionRate: null },
       },
       versionB: {
         title: `${request.tone} ${request.brandName} Campaign - Version B`,
         content: contentB,
-        metrics: generateMetrics(),
+        metrics: metricsB || { openRate: null, clickThroughRate: null, conversionRate: null },
       },
       modelUsed: workingModel,
       rawResponse: content // Include raw response for debugging
@@ -268,7 +241,7 @@ app.post("/api/dashboard/post", async (req, res) => {
 
 // AYRSHARE POST ENDPOINT
 app.post("/api/ayrshare/post", async (req, res) => {
-  const { text, platforms } = req.body;
+  const { text, platforms, mediaUrls } = req.body;
   const apiKey = process.env.AYRSHARE_API;
 
   if (!apiKey) {
@@ -279,24 +252,29 @@ app.post("/api/ayrshare/post", async (req, res) => {
   }
 
   try {
-    const response = await axios.post(
-      "https://api.ayrshare.com/api/post",
-      {
-        post: text,
-        platforms: platforms
+    // Use node-fetch for fetch API
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const response = await fetch("https://api.ayrshare.com/api/post", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
       },
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json"
-        }
-      }
-    );
-    res.json(response.data);
+      body: JSON.stringify({
+        post: text,
+        platforms: platforms,
+        ...(mediaUrls ? { mediaUrls } : {})
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      return res.status(response.status).json({ error: data.error || "Ayrshare API error", details: data });
+    }
+    res.json(data);
   } catch (err) {
-    res.status(err.response?.status || 500).json({
-      error: err.response?.data?.error || err.message,
-      details: err.response?.data || null
+    res.status(500).json({
+      error: err.message || "Unknown error",
+      details: err
     });
   }
 });
