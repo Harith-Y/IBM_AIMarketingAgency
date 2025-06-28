@@ -4,9 +4,9 @@ import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 
-const API_BASE_URL = "https://marketing-agency-rakg.onrender.com";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const RegisterPage = ({ setUser, showToast }) => {
+const RegisterPage = ( {showToast} ) => {
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -28,7 +28,7 @@ const RegisterPage = ({ setUser, showToast }) => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/auth/register`, {
+      const response = await axios.post(`${API_BASE_URL}/auth/register`, {
         email,
         password,
         firstName,

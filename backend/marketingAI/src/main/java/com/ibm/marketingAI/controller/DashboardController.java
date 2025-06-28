@@ -51,14 +51,14 @@ public class DashboardController {
     @GetMapping("/get")
     public ResponseEntity<?> getCampaign(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
-
+        log.info("TOKEN "+authHeader);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing or invalid token");
         }
 
         String token = authHeader.substring(7);
         String email = jwtUtil.extractUserId(token); 
-
+        log.info("email "+email);
         return ResponseEntity.ok(campaignService.getAllCampaignForUser(email));
     }
 

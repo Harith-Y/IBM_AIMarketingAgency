@@ -4,12 +4,12 @@ import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 
-const API_BASE_URL = "https://marketing-agency-rakg.onrender.com";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 //const API_BASE_URL = "http://localhost:8080";
 
 
 
-const LoginPage = ({ setUser, showToast }) => {
+const LoginPage = ({showToast }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState('');
@@ -25,9 +25,9 @@ const LoginPage = ({ setUser, showToast }) => {
     setIsLoading(true);
 
     try {
-      console.log("url is "+`${API_BASE_URL}/api/auth/login`);
+      console.log("url is "+`${API_BASE_URL}/auth/login`);
       const response = await axios.post(
-        `${API_BASE_URL}/api/auth/login`,
+        `${API_BASE_URL}/auth/login`,
         { email, password },
         {
           headers: { 'Content-Type': 'application/json' },
@@ -35,10 +35,13 @@ const LoginPage = ({ setUser, showToast }) => {
         }
       );
 
+      console.log(response.data);
+
       if (response.status === 200 && response.data?.access_token) {
         const token = response.data.access_token;
+        const name = response.data.firstName;
         localStorage.setItem('authToken', token);
-        setUser({ token });
+        localStorage.setItem('name',name);
         showToast('Login successful!', 'success');
         navigate('/dashboard');
       } else {
@@ -61,7 +64,7 @@ const LoginPage = ({ setUser, showToast }) => {
           setError(`Error ${status}: ${message}`);
         }
       } else if (error.request) {
-        setError('Network error. Please check your connection and ensure the server is running on http://localhost:8080');
+        setError('Network error. Please check your connection and ensure the server is running on http://localhost:8080 or backend url');
       } else {
         setError('An unexpected error occurred. Please try again.');
       }

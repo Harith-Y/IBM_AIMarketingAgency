@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import { Sparkles, LogOut, User, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const Navbar = ({ user, onLogout }) => {
+const Navbar = ({onLogout }) => {
   const navigate = useNavigate();
-
+  const name = localStorage.getItem("name");
   return (
     <motion.nav 
       className="relative"
@@ -63,7 +63,7 @@ const Navbar = ({ user, onLogout }) => {
                 <User className="h-5 w-5" />
               </motion.div>
               <span className="hidden sm:block font-medium">
-                Welcome, {user.firstName}
+                Welcome, {name}
               </span>
             </motion.div>
 
