@@ -18,7 +18,7 @@ function generateMetrics() {
 
 // Helper to build prompts for A/B
 function buildPrompt(request) {
-  const { tone, brandName, audienceCategory, audienceType, minAge, maxAge, product, offer, season } = request;
+  const { tone, brandName, audienceCategory, audienceType, minAge, maxAge, productName } = request;
   
   // Determine ad type based on context (you can make this more dynamic)
   const adType = "marketing campaign";
@@ -28,7 +28,7 @@ function buildPrompt(request) {
 
 Brand Name: ${brandName}
 
-Product Name: ${product || 'N/A'}
+Product Name: ${productName || 'N/A'}
 
 Campaign Tone: ${tone} (e.g., playful, bold, premium, friendly, inspiring)
 
