@@ -77,6 +77,14 @@ public class CampaignService {
         response.setVersionB(versionB);
         response.setOwner(user);
 
+        response.setAudienceCategory(input.getAudienceCategory());
+        response.setAudienceType(input.getAudienceType());
+        response.setBrandName(input.getBrandName());
+        response.setMaxAge(input.getMaxAge());
+        response.setMinAge(input.getMinAge());
+        response.setProductName(input.getProductName());
+        response.setTone(input.getTone());
+
         return campaignRepo.save(response);
     }
 
@@ -88,12 +96,22 @@ public class CampaignService {
         List<CampaignResponse> campaigns = responseRepo.findByOwner(user);
 
         return campaigns.stream()
-            .map(c -> new CampaignResponseDto(
-                c.getId(),
-                c.getVersionA(),
-                c.getVersionB()
-            ))
-            .collect(Collectors.toList());
+    .map(c -> {
+        CampaignResponseDto dto = new CampaignResponseDto();
+        dto.setId(c.getId());
+        dto.setTone(c.getTone());
+        dto.setBrandName(c.getBrandName());
+        dto.setAudienceCategory(c.getAudienceCategory());
+        dto.setAudienceType(c.getAudienceType());
+        dto.setProductName(c.getProductName());
+        dto.setMinAge(c.getMinAge());
+        dto.setMaxAge(c.getMaxAge());
+        dto.setVersionA(c.getVersionA());
+        dto.setVersionB(c.getVersionB());
+        return dto;
+    })
+    .collect(Collectors.toList());
+
     }
 
 

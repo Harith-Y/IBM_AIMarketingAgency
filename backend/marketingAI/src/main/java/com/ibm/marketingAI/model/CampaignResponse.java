@@ -40,5 +40,12 @@ public class CampaignResponse {
     @JsonBackReference
     private AppUser owner;
 
+    private String tone;
+    private String brandName;
+    private String audienceCategory;
+    private String audienceType;
+    private String productName;
+    private int minAge;
+    private int maxAge;
 
 }
