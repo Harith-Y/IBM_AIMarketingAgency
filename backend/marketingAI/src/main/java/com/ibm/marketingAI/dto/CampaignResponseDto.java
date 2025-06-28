@@ -1,6 +1,6 @@
 package com.ibm.marketingAI.dto;
 
-import com.ibm.marketingAI.model.Version;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,7 +17,7 @@ public class CampaignResponseDto {
     private String productName;
     private int minAge;
     private int maxAge;
-    private Version versionA;
-    private Version versionB;
+    private VersionDto versionA;
+    private VersionDto versionB;
 }
  

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.ibm.marketingAI.dto.CampaignRequest;
 import com.ibm.marketingAI.dto.CampaignResponseDto;
+import com.ibm.marketingAI.dto.VersionDto;
 import com.ibm.marketingAI.model.AppUser;
 import com.ibm.marketingAI.model.CampaignResponse;
 import com.ibm.marketingAI.model.Metrics;
@@ -106,8 +107,8 @@ public class CampaignService {
         dto.setProductName(c.getProductName());
         dto.setMinAge(c.getMinAge());
         dto.setMaxAge(c.getMaxAge());
-        dto.setVersionA(c.getVersionA());
-        dto.setVersionB(c.getVersionB());
+        dto.setVersionA(new VersionDto(c.getVersionA().getV_id(),c.getVersionA().getTitle(), c.getVersionA().getContent()));
+        dto.setVersionB(new VersionDto(c.getVersionB().getV_id(),c.getVersionA().getTitle(), c.getVersionB().getContent()));
         return dto;
     })
     .collect(Collectors.toList());
