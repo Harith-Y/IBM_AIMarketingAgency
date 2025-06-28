@@ -1,5 +1,7 @@
 package com.ibm.marketingAI.controller;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,9 +55,16 @@ public class AuthController {
         log.info("got auth name " + auth.getName());
 
         String token = jwtUtil.generateToken(auth.getName());
+        Optional<AppUser> existingUser = userRepository.findByEmail(req.getEmail());
+        if (!existingUser.isPresent()) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body("User not registered");
+        }
+        AppUser user = existingUser.get();
 
         log.info("got token " + token);
-        return ResponseEntity.ok(authService.createAuthReponse(req.getEmail(), token));
+        return ResponseEntity.ok(authService.createAuthReponse(req.getEmail(),user.getFirstName(),token));
     } catch (Exception e) {
         log.error("Authentication failed: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
@@ -64,12 +73,21 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterReq request) {
+        Optional<AppUser> existingUser = userRepository.findByEmail(request.getEmail());
+
+        if (existingUser.isPresent()) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body("User with this email already exists");
+        }
+
         AppUser newUser = new AppUser();
         newUser.setEmail(request.getEmail());
         newUser.setPassword(passwordEncoder.encode(request.getPassword()));
         newUser.setRole("USER"); // default role
         newUser.setFirstName(request.getFirstName());
         newUser.setLastName(request.getLastName());
+        
 
         userRepository.save(newUser);
         return ResponseEntity.ok("User registered");

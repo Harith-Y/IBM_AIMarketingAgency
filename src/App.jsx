@@ -8,15 +8,14 @@ import HistoryPage from './pages/HistoryPage';
 import Toast from './components/Toast';
 
 const App = () => {
-  const [user, setUser] = useState(null);
   const [toasts, setToasts] = useState([]);
 
-  useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      setUser({ token });
-    }
-  }, []);
+  // useEffect(() => {
+  //   const token = localStorage.getItem('authToken');
+  //   if (token) {
+  //     setUser({ token });
+  //   }
+  // }, []);
 
   const showToast = (message, type) => {
     const id = Date.now().toString();
@@ -30,7 +29,7 @@ const App = () => {
 
   const logout = () => {
     localStorage.removeItem('authToken');
-    setUser(null);
+    //setUser(null);
     showToast('Logged out successfully!', 'success');
   };
 
@@ -61,7 +60,7 @@ const App = () => {
           <Routes>
             <Route
               path="/"
-              element={<Navigate to={user ? '/dashboard' : '/login'} replace />}
+              element={<Navigate to={localStorage.getItem("authToken") ? '/dashboard' : '/login'} replace />}
             />
             <Route
               path="/login"
@@ -73,7 +72,7 @@ const App = () => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.5, ease: 'easeInOut' }}
                 >
-                  <LoginPage showToast={showToast} setUser={setUser} />
+                  <LoginPage showToast={showToast} />
                 </motion.div>
               }
             />
@@ -87,14 +86,14 @@ const App = () => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.5, ease: 'easeInOut' }}
                 >
-                  <RegisterPage showToast={showToast} setUser={setUser} />
+                  <RegisterPage showToast={showToast} />
                 </motion.div>
               }
             />
             <Route
               path="/dashboard"
               element={
-                user ? (
+                localStorage.getItem("authToken") ? (
                   <motion.div
                     key="dashboard"
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -102,7 +101,7 @@ const App = () => {
                     exit={{ opacity: 0, scale: 1.05 }}
                     transition={{ duration: 0.5, ease: 'easeInOut' }}
                   >
-                    <Dashboard user={user} onLogout={logout} showToast={showToast} />
+                    <Dashboard onLogout={logout} showToast={showToast} />
                   </motion.div>
                 ) : (
                   <Navigate to="/login" replace />
@@ -112,7 +111,7 @@ const App = () => {
             <Route
               path="/history"
               element={
-                user ? (
+                localStorage.getItem("authToken") ? (
                   <motion.div
                     key="history"
                     initial={{ opacity: 0, y: 30 }}
@@ -120,7 +119,7 @@ const App = () => {
                     exit={{ opacity: 0, y: -30 }}
                     transition={{ duration: 0.5, ease: 'easeInOut' }}
                   >
-                    <HistoryPage user={user} onLogout={logout} showToast={showToast} />
+                    <HistoryPage onLogout={logout} showToast={showToast} />
                   </motion.div>
                 ) : (
                   <Navigate to="/login" replace />
@@ -129,7 +128,7 @@ const App = () => {
             />
             <Route
               path="*"
-              element={<Navigate to={user ? '/dashboard' : '/login'} replace />}
+              element={<Navigate to={localStorage.getItem("authToken") ? '/dashboard' : '/login'} replace />}
             />
           </Routes>
         </AnimatePresence>

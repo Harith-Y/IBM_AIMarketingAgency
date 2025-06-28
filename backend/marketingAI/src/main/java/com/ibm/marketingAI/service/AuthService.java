@@ -7,7 +7,7 @@ import com.ibm.marketingAI.dto.AuthResponse;
 @Service
 public class AuthService {
     
-    public AuthResponse createAuthReponse(String email,String token){
-        return new AuthResponse(email,token);
+    public AuthResponse createAuthReponse(String email,String firstName,String token){
+        return new AuthResponse(email,firstName,token);
     }
 }

@@ -9,34 +9,19 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const Dashboard = ({ user, onLogout, showToast }) => {
+const Dashboard = ({onLogout, showToast }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedContent, setGeneratedContent] = useState(null);
-
-
-
-  const saveToHistory = (request, content) => {
-    const prev = JSON.parse(localStorage.getItem('generated_history')) || [];
-    const newEntry = {
-      timestamp: new Date().toISOString(),
-      request,
-      content: {
-          versionA: content.versionA,
-          versionB: content.versionB
-        }
-    };
-    localStorage.setItem('generated_history', JSON.stringify([newEntry, ...prev]));
-  };
-
+  const JWT_TOKEN = localStorage.getItem('authToken');
 
   const generateContent = async (request) => {
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem('authToken');
+       
       const response = await axios.post(`${API_BASE_URL}/dashboard/post`, request, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${JWT_TOKEN}`,
           'Content-Type': 'application/json'
         }
       });
@@ -46,7 +31,7 @@ const Dashboard = ({ user, onLogout, showToast }) => {
       showToast("Content generated successfully!", "success");
 
       // Save to history
-      saveToHistory(request, content);
+      //saveToHistory(request, content);
     } catch (error) {
       console.error("Content generation failed:", error);
       showToast("Failed to generate content. Please try again.", "error");
@@ -66,7 +51,7 @@ const Dashboard = ({ user, onLogout, showToast }) => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      <Navbar user={user} onLogout={onLogout} />
+      <Navbar  onLogout={onLogout} />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div 
