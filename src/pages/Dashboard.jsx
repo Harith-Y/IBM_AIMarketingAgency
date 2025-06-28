@@ -8,17 +8,16 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const AYRSHARE_API_KEY = "4E8-B2751D5D-E3CA40CF"; 
 
-const Dashboard = ({onLogout, showToast }) => {
+const Dashboard = ({ onLogout, showToast }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedContent, setGeneratedContent] = useState(null);
   const JWT_TOKEN = localStorage.getItem('authToken');
 
   const generateContent = async (request) => {
     setIsLoading(true);
-
     try {
-       
       const response = await axios.post(`${API_BASE_URL}/dashboard/post`, request, {
         headers: {
           'Authorization': `Bearer ${JWT_TOKEN}`,
@@ -26,12 +25,8 @@ const Dashboard = ({onLogout, showToast }) => {
         }
       });
       const content = response.data;
-
       setGeneratedContent(content);
       showToast("Content generated successfully!", "success");
-
-      // Save to history
-      //saveToHistory(request, content);
     } catch (error) {
       console.error("Content generation failed:", error);
       showToast("Failed to generate content. Please try again.", "error");
@@ -44,6 +39,36 @@ const Dashboard = ({onLogout, showToast }) => {
     setGeneratedContent(null);
   };
 
+  const handlePostToAyrshare = async (version) => {
+    if (!generatedContent) return;
+    const versionContent = version === 'A' ? generatedContent.versionA : generatedContent.versionB;
+
+    try {
+      const response = await fetch("https://api.ayrshare.com/api/post", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${AYRSHARE_API_KEY}`
+        },
+        body: JSON.stringify({
+          post: versionContent.content,
+          platforms: ["facebook", "linkedin", "twitter"], // Modify as needed
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        showToast(`Version ${version} posted successfully!`, "success");
+        console.log(`Version ${version} post response:`, data);
+      } else {
+        throw new Error(data.message || 'Unknown error');
+      }
+    } catch (error) {
+      console.error(`Failed to post Version ${version}:`, error);
+      showToast(`Failed to post Version ${version}`, "error");
+    }
+  };
+
   return (
     <motion.div 
       className="min-h-screen relative"
@@ -51,8 +76,8 @@ const Dashboard = ({onLogout, showToast }) => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      <Navbar  onLogout={onLogout} />
-      
+      <Navbar onLogout={onLogout} />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div 
           className="mb-8"
@@ -107,6 +132,21 @@ const Dashboard = ({onLogout, showToast }) => {
                 className="space-y-8"
               >
                 <OutputSection content={generatedContent} showToast={showToast} />
+
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => handlePostToAyrshare('A')}
+                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:opacity-90 transition-all"
+                  >
+                    Post Version A
+                  </button>
+                  <button
+                    onClick={() => handlePostToAyrshare('B')}
+                    className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:opacity-90 transition-all"
+                  >
+                    Post Version B
+                  </button>
+                </div>
               </motion.div>
             )}
 
