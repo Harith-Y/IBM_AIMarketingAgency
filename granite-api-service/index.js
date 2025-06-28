@@ -266,5 +266,40 @@ app.post("/api/dashboard/post", async (req, res) => {
   }
 });
 
+// AYRSHARE POST ENDPOINT
+app.post("/api/ayrshare/post", async (req, res) => {
+  const { text, platforms } = req.body;
+  const apiKey = process.env.AYRSHARE_API;
+
+  if (!apiKey) {
+    return res.status(500).json({ error: "Ayrshare API key not configured." });
+  }
+  if (!text || !platforms || !Array.isArray(platforms)) {
+    return res.status(400).json({ error: "Missing text or platforms array." });
+  }
+
+  try {
+    const response = await axios.post(
+      "https://api.ayrshare.com/api/post",
+      {
+        post: text,
+        platforms: platforms
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+    res.json(response.data);
+  } catch (err) {
+    res.status(err.response?.status || 500).json({
+      error: err.response?.data?.error || err.message,
+      details: err.response?.data || null
+    });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`✅ Granite API server running on port ${PORT}`));

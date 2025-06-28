@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Copy, Download, Crown, TrendingUp } from 'lucide-react';
+import axios from 'axios';
 
 const OutputSection = ({ content, showToast }) => {
   const copyToClipboard = async (text, version) => {
@@ -21,6 +22,18 @@ const OutputSection = ({ content, showToast }) => {
     element.click();
     document.body.removeChild(element);
     showToast('Content downloaded successfully!', 'success');
+  };
+
+  const postToAyrshare = async (text, version) => {
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/ayrshare/post`, {
+        text,
+        platforms: ['twitter', 'facebook', 'threads'] 
+      });
+      showToast(`Version ${version} posted to Ayrshare!`, 'success');
+    } catch (error) {
+      showToast(`Failed to post Version ${version}: ${error.response?.data?.error || error.message}`, 'error');
+    }
   };
 
   const getBestPerformer = () => {
@@ -111,6 +124,15 @@ const OutputSection = ({ content, showToast }) => {
                 >
                   <Download className="h-4 w-4" />
                 </motion.button>
+                <motion.button
+                  onClick={() => postToAyrshare(content.versionA.content, 'A')}
+                  className="p-2 bg-gradient-to-r from-pink-500/20 to-purple-500/20 hover:from-pink-500/30 hover:to-purple-500/30 text-pink-200 rounded-xl transition-all backdrop-blur-sm border border-pink-500/30"
+                  title="Post to Ayrshare"
+                  whileHover={{ scale: 1.1, rotate: 2 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  Post
+                </motion.button>
               </div>
             </div>
             
@@ -193,6 +215,15 @@ const OutputSection = ({ content, showToast }) => {
                   whileTap={{ scale: 0.9 }}
                 >
                   <Download className="h-4 w-4" />
+                </motion.button>
+                <motion.button
+                  onClick={() => postToAyrshare(content.versionB.content, 'B')}
+                  className="p-2 bg-gradient-to-r from-pink-500/20 to-purple-500/20 hover:from-pink-500/30 hover:to-purple-500/30 text-pink-200 rounded-xl transition-all backdrop-blur-sm border border-pink-500/30"
+                  title="Post to Ayrshare"
+                  whileHover={{ scale: 1.1, rotate: 2 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  Post
                 </motion.button>
               </div>
             </div>
