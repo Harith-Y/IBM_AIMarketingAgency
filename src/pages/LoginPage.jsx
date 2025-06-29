@@ -1,36 +1,36 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight } from 'lucide-react';
-import axios from 'axios';
+import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Sparkles, ArrowRight } from "lucide-react";
+import axios from "axios";
+import GoogleSignIn from "../components/GoogleSignIn";
+
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 //const API_BASE_URL = "http://localhost:8080";
 
-
-
-const LoginPage = ({showToast }) => {
+const LoginPage = ({ showToast }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const successMessage = location.state?.message;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
-      console.log("url is "+`${API_BASE_URL}/auth/login`);
+      console.log("url is " + `${API_BASE_URL}/auth/login`);
       const response = await axios.post(
         `${API_BASE_URL}/auth/login`,
         { email, password },
         {
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
           withCredentials: true,
         }
       );
@@ -40,36 +40,45 @@ const LoginPage = ({showToast }) => {
       if (response.status === 200 && response.data?.access_token) {
         const token = response.data.access_token;
         const name = response.data.firstName;
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('name',name);
-        showToast('Login successful!', 'success');
-        navigate('/dashboard');
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("name", name);
+        showToast("Login successful!", "success");
+        navigate("/dashboard");
       } else {
-        setError('Login failed. Please try again.');
+        setError("Login failed. Please try again.");
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       if (error.response) {
         const status = error.response.status;
-        const message = error.response.data?.message || error.response.data?.error || 'Login failed';
+        const message =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          "Login failed";
         if (status === 401) {
-          setError('Invalid email or password. Please try again.');
+          setError("Invalid email or password. Please try again.");
         } else if (status === 403) {
-          setError('Access forbidden. This might be a CORS issue or the server is rejecting the request.');
+          setError(
+            "Access forbidden. This might be a CORS issue or the server is rejecting the request."
+          );
         } else if (status === 404) {
-          setError('Login endpoint not found. Please check if the server is running.');
+          setError(
+            "Login endpoint not found. Please check if the server is running."
+          );
         } else if (status === 400) {
           setError(`Bad request: ${message}`);
         } else {
           setError(`Error ${status}: ${message}`);
         }
       } else if (error.request) {
-        setError('Network error. Please check your connection and ensure the server is running on http://localhost:8080 or backend url');
+        setError(
+          "Network error. Please check your connection and ensure the server is running on http://localhost:8080 or backend url"
+        );
       } else {
-        setError('An unexpected error occurred. Please try again.');
+        setError("An unexpected error occurred. Please try again.");
       }
 
-      setPassword('');
+      setPassword("");
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +97,7 @@ const LoginPage = ({showToast }) => {
           <motion.div
             className="flex justify-center mb-6"
             whileHover={{ scale: 1.1, rotate: 5 }}
-            transition={{ type: 'spring', stiffness: 300 }}
+            transition={{ type: "spring", stiffness: 300 }}
           >
             <div className="relative">
               <motion.div
@@ -100,7 +109,7 @@ const LoginPage = ({showToast }) => {
                 transition={{
                   duration: 3,
                   repeat: Infinity,
-                  ease: 'easeInOut',
+                  ease: "easeInOut",
                 }}
               />
               <div className="relative bg-gradient-to-r from-pink-500 to-purple-600 p-4 rounded-3xl shadow-2xl">
@@ -159,7 +168,10 @@ const LoginPage = ({showToast }) => {
               )}
 
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-200 mb-3">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-semibold text-gray-200 mb-3"
+                >
                   Email Address
                 </label>
                 <input
@@ -175,7 +187,10 @@ const LoginPage = ({showToast }) => {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-200 mb-3">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-semibold text-gray-200 mb-3"
+                >
                   Password
                 </label>
                 <input
@@ -194,7 +209,10 @@ const LoginPage = ({showToast }) => {
                 type="submit"
                 disabled={isLoading}
                 className="w-full relative overflow-hidden bg-gradient-to-r from-cyan-500 to-purple-600 text-white py-4 px-6 rounded-2xl font-semibold shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                whileHover={{ scale: isLoading ? 1 : 1.02, y: isLoading ? 0 : -2 }}
+                whileHover={{
+                  scale: isLoading ? 1 : 1.02,
+                  y: isLoading ? 0 : -2,
+                }}
                 whileTap={{ scale: isLoading ? 1 : 0.98 }}
               >
                 <motion.div
@@ -207,7 +225,11 @@ const LoginPage = ({showToast }) => {
                     <motion.div
                       className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full"
                       animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
                     />
                   ) : (
                     <>
@@ -221,10 +243,10 @@ const LoginPage = ({showToast }) => {
 
             <div className="mt-8 text-center space-y-4">
               <div className="text-gray-400 text-sm">
-                Don&apos;t have an account?{' '}
+                Don&apos;t have an account?{" "}
                 <motion.button
                   type="button"
-                  onClick={() => navigate('/register')}
+                  onClick={() => navigate("/register")}
                   className="text-purple-400 hover:text-purple-300 transition-colors duration-300 font-medium"
                   whileHover={{ scale: 1.05 }}
                   disabled={isLoading}
@@ -232,6 +254,9 @@ const LoginPage = ({showToast }) => {
                   Sign up
                 </motion.button>
               </div>
+            </div>
+            <div className="flex justify-center">
+              <GoogleSignIn />
             </div>
           </div>
         </motion.div>
