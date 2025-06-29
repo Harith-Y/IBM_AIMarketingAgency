@@ -156,21 +156,38 @@ const HistoryPage = ({ onLogout, showToast }) => {
               <h3 className="text-xl font-semibold mb-1">{item.brandName}</h3>
               <p className="text-sm text-gray-300 mb-4">{item.productName}</p>
               <div className="flex gap-3 mb-4">
-                <motion.button onClick={() => handleViewContent(item, 'A')}
-                  className="bg-cyan-500 hover:bg-cyan-600 text-white py-2 px-3 rounded"
-                  whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
-                  View Content A
-                </motion.button>
-                <motion.button onClick={() => handleViewContent(item, 'B')}
-                  className="bg-pink-500 hover:bg-pink-600 text-white py-2 px-3 rounded"
-                  whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
-                  View Content B
-                </motion.button>
-                 <motion.button onClick={() => handleViewAnalytics(item)}
-                className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded shadow-lg"
-                whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
-                View Real Analytics
-              </motion.button>
+                <div className="flex gap-4 mb-6">
+                  {/* View Content A */}
+                  <motion.button
+                    onClick={() => handleViewContent(item, 'A')}
+                    className="px-4 py-2 rounded-xl text-cyan-200 border border-cyan-500/30 backdrop-blur-md bg-gradient-to-br from-cyan-500/10 to-cyan-400/10 hover:brightness-110 transition-all"
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    View Content A
+                  </motion.button>
+
+                  {/* View Content B */}
+                  <motion.button
+                    onClick={() => handleViewContent(item, 'B')}
+                    className="px-4 py-2 rounded-xl text-pink-200 border border-pink-500/30 backdrop-blur-md bg-gradient-to-br from-pink-500/10 to-pink-400/10 hover:brightness-110 transition-all"
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    View Content B
+                  </motion.button>
+
+                  {/* View Analytics */}
+                  <motion.button
+                    onClick={() => handleViewAnalytics(item)}
+                    className="px-4 py-2 rounded-xl text-blue-200 border border-blue-500/30 backdrop-blur-md bg-gradient-to-br from-blue-500/10 to-blue-400/10 hover:brightness-110 transition-all"
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    View Real Analytics
+                  </motion.button>
+                </div>
+
               </div>
             </motion.div>
           ))}
