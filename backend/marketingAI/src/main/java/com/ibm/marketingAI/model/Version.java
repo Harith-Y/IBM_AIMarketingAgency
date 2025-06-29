@@ -31,4 +31,7 @@ public class Version {
     private String content;
     @Embedded
     private Metrics metrics;
+
+    private String twitter_id;
+    private String twitter_link;
 }

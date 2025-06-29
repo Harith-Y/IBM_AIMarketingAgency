@@ -31,6 +31,7 @@ const Dashboard = ({ onLogout, showToast }) => {
       });
 
       const content = response.data;
+      console.log(content);
       setGeneratedContent(content);
       showToast("Content generated successfully!", "success");
 
