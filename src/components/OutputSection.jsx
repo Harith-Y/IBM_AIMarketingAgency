@@ -200,29 +200,6 @@ const OutputSection = ({ content, showToast }) => {
     }
   };
 
-  const fetchAnalytics = async (twitterId, version) => {
-    try {
-      const response = await axios.get(
-        `${API_BASE_URL}/dashboard/twitter/analytics/${twitterId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setAnalytics((prev) => ({ ...prev, [version]: response.data }));
-      showToast(`Analytics for Version ${version} fetched`, "success");
-    } catch (error) {
-      showToast(
-        `Failed to fetch analytics for Version ${version}: ${
-          error.response?.data?.error || error.message
-        }`,
-        "error"
-      );
-    }
-  };
-
   const getBestPerformer = () => {
     const aTotal =
       content.versionA.metrics.openRate +
@@ -399,10 +376,46 @@ const OutputSection = ({ content, showToast }) => {
         >
           <Send className={`h-5 w-5 ${isPosting ? "animate-pulse" : ""}`} />
           <span className="text-lg font-semibold">
-            {isPosting ? "Posting Both Versions..." : "Save and Post Both Versions"}
+            {isPosting
+              ? "Posting Both Versions..."
+              : "Save and Post Both Versions"}
           </span>
         </motion.button>
       </motion.div>
+
+      {/* 🔗 Posted Tweet Links */}
+      {(postedLinks.A || postedLinks.B) && (
+        <motion.div
+          className="mt-6 text-center space-y-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <p className="text-white font-medium">✅ View your live Twitter posts:</p>
+          <div className="flex flex-col items-center space-y-1">
+            {postedLinks.A && (
+              <a
+                href={postedLinks.A}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-cyan-400 hover:underline"
+              >
+                🔹 Version A Tweet
+              </a>
+            )}
+            {postedLinks.B && (
+              <a
+                href={postedLinks.B}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-pink-400 hover:underline"
+              >
+                🔸 Version B Tweet
+              </a>
+            )}
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 };
