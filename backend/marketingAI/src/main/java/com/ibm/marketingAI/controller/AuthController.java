@@ -1,5 +1,7 @@
 package com.ibm.marketingAI.controller;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.Authentication;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.ibm.marketingAI.dto.AuthResponse;
 import com.ibm.marketingAI.dto.LoginReq;
 import com.ibm.marketingAI.dto.RegisterReq;
 import com.ibm.marketingAI.model.AppUser;
@@ -43,6 +50,9 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+
+    private final String CLIENT_ID = "1087092754597-05j77ogikqgqtv82aak8dsiukgiga8pv.apps.googleusercontent.com";
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginReq req) {
@@ -91,6 +101,42 @@ public class AuthController {
 
         userRepository.save(newUser);
         return ResponseEntity.ok("User registered");
+    }
+
+    @SuppressWarnings("deprecation")
+    @PostMapping("/google")
+    public ResponseEntity<?> authenticate(@RequestBody Map<String, String> body) throws Exception {
+        String idTokenString = body.get("token");
+        log.info(idTokenString);
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance())
+                .setAudience(Collections.singletonList(CLIENT_ID))
+                .build();
+
+        GoogleIdToken idToken = verifier.verify(idTokenString);
+        log.info("going to idToken ");
+        System.out.println(idToken);
+        if (idToken != null) {
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+            
+            // Optionally save user to DB
+            AppUser user = userRepository.findByEmail(email).orElseGet(() -> {
+                // If not found, create new user
+                AppUser newUser = new AppUser();
+                newUser.setEmail(email);
+                newUser.setFirstName(name);
+                log.debug("going to save to userRepo by google");
+                return userRepository.save(newUser);
+            });
+
+            // Generate JWT
+            String accessToken = jwtUtil.generateToken(email);
+            AuthResponse authResponse = new AuthResponse(user.getEmail(),user.getFirstName(),accessToken);
+            return ResponseEntity.ok(authResponse);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
     }
 
 
