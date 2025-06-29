@@ -4,10 +4,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.ibm.marketingAI.dto.CampaignRequest;
 import com.ibm.marketingAI.dto.CampaignResponseDto;
+import com.ibm.marketingAI.dto.TwitterAnalyticsDTO;
+import com.ibm.marketingAI.dto.TwitterDTO;
+import com.ibm.marketingAI.dto.TwitterPostDTO;
 import com.ibm.marketingAI.dto.VersionDto;
 import com.ibm.marketingAI.model.AppUser;
 import com.ibm.marketingAI.model.CampaignResponse;
@@ -17,11 +23,19 @@ import com.ibm.marketingAI.repo.ResponseRepo;
 import com.ibm.marketingAI.repo.UserRepository;
 import com.ibm.marketingAI.repo.VersionRepo;
 
+
+
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.*;
+
 
 
 @Service
 public class CampaignService {
+
+    @Value("${twitter.bearer.token}")
+    private String bearerToken;
 
     @Autowired
     private ResponseRepo campaignRepo;
@@ -114,6 +128,42 @@ public class CampaignService {
     .collect(Collectors.toList());
 
     }
+
+    public void saveTwitterPost(TwitterPostDTO dto) {
+        Version version = versionRepo.findById(dto.getV_id())
+                .orElseThrow(() -> new IllegalArgumentException("Version not found with id: " + dto.getV_id()));
+
+        version.setTwitter_id(dto.getTwitterId());
+        version.setTwitter_link(dto.getPostUrl());
+
+        versionRepo.save(version);
+    }
+
+
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    public TwitterAnalyticsDTO fetchTweetAnalytics(String tweetId) {
+        String url = "https://api.twitter.com/2/tweets/" + tweetId + "?tweet.fields=public_metrics";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(bearerToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<TwitterDTO> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                entity,
+                TwitterDTO.class
+        );
+
+        return response.getBody().getData();
+    }
+
+
+
 
 
 }
