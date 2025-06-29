@@ -220,13 +220,6 @@ const LoginPage = ({showToast }) => {
             </form>
 
             <div className="mt-8 text-center space-y-4">
-              <motion.a
-                href="#"
-                className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors duration-300 font-medium"
-                whileHover={{ scale: 1.05 }}
-              >
-                Forgot your password?
-              </motion.a>
               <div className="text-gray-400 text-sm">
                 Don&apos;t have an account?{' '}
                 <motion.button
