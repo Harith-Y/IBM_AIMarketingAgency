@@ -1,16 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Copy, Download, Crown, TrendingUp } from "lucide-react";
+import { Copy, Download, Crown, TrendingUp, Send } from "lucide-react";
 import axios from "axios";
 
 const AYRSHARE_URL = import.meta.env.VITE_AYRSHARE_URL;
 const API_KEY = import.meta.env.VITE_AYRSHARE_API;
+const API_KEYB = import.meta.env.VITE_AYRSHAREB_API;
 const MAX_TWITTER_LENGTH = 280;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const OutputSection = ({ content, showToast }) => {
   const [analytics, setAnalytics] = useState({ A: null, B: null });
+  const [isPosting, setIsPosting] = useState(false);
   const token = localStorage.getItem("authToken");
+  
   const copyToClipboard = async (text, version) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -36,7 +39,7 @@ const OutputSection = ({ content, showToast }) => {
     return text.slice(0, MAX_TWITTER_LENGTH - 100) + "...";
   };
 
-  const postToAyrshare = async (text, version) => {
+  const postToAyrshareA = async (text, version) => {
     try {
       const trimmedText = trimTextForTwitter(text);
 
@@ -79,27 +82,126 @@ const OutputSection = ({ content, showToast }) => {
           }
         );
 
-        showToast(`Version ${version} posted and saved!`, "success");
+        return { success: true, version };
+      } else {
+        return { success: false, version, error: "No Twitter post ID found" };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        version,
+        error: error.response?.data?.error || error.message,
+      };
+    }
+  };
+
+  const postToAyrshareB = async (text, version) => {
+    try {
+      const trimmedText = trimTextForTwitter(text);
+
+      const response = await axios.post(
+        `${AYRSHARE_URL}/api/post`,
+        {
+          post: trimmedText,
+          platforms: ["twitter"],
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${API_KEYB}`,
+          },
+        }
+      );
+
+      const twitterPost = response.data.postIds.find(
+        (post) => post.platform === "twitter"
+      );
+
+      if (twitterPost) {
+        const twitterId = twitterPost.id;
+        const postUrl = twitterPost.postUrl;
+        const v_id =
+          version === "A" ? content.versionA.v_id : content.versionB.v_id;
+
+        // Send Twitter ID + post URL + version ID to backend
+        await axios.post(
+          `${API_BASE_URL}/dashboard/twitter/save`,
+          {
+            twitterId,
+            postUrl,
+            v_id,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        return { success: true, version };
+      } else {
+        return { success: false, version, error: "No Twitter post ID found" };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        version,
+        error: error.response?.data?.error || error.message,
+      };
+    }
+  };
+
+  const postBothVersions = async () => {
+    setIsPosting(true);
+    
+    try {
+      // Post Version A to Account A and Version B to Account B simultaneously
+      const [resultA, resultB] = await Promise.all([
+        postToAyrshareA(content.versionA.content, "A"),
+        postToAyrshareB(content.versionB.content, "B"),
+      ]);
+
+      // Handle results
+      let successCount = 0;
+      let messages = [];
+
+      if (resultA.success) {
+        successCount++;
+        messages.push(`Version A posted to Account A successfully`);
+      } else {
+        messages.push(`Version A failed: ${resultA.error}`);
+      }
+
+      if (resultB.success) {
+        successCount++;
+        messages.push(`Version B posted to Account B successfully`);
+      } else {
+        messages.push(`Version B failed: ${resultB.error}`);
+      }
+
+      // Show appropriate toast message
+      if (successCount === 2) {
+        showToast("Both versions posted and saved successfully!", "success");
+      } else if (successCount === 1) {
+        showToast(
+          `Partial success: ${messages.join(". ")}`,
+          "warning"
+        );
       } else {
         showToast(
-          `Version ${version} posted but no Twitter post ID found`,
-          "warning"
+          `Both versions failed: ${messages.join(". ")}`,
+          "error"
         );
       }
     } catch (error) {
-      showToast(
-        `Failed to post Version ${version}: ${
-          error.response?.data?.error || error.message
-        }`,
-        "error"
-      );
+      showToast("Failed to post both versions", "error");
+    } finally {
+      setIsPosting(false);
     }
   };
 
   const fetchAnalytics = async (twitterId, version) => {
     try {
-      // or however you store the JWT
-
       const response = await axios.get(
         `${API_BASE_URL}/dashboard/twitter/analytics/${twitterId}`,
         {
@@ -238,15 +340,6 @@ const OutputSection = ({ content, showToast }) => {
                     >
                       <Download className="h-4 w-4" />
                     </motion.button>
-                    <motion.button
-                      onClick={() => postToAyrshare(data.content, ver)}
-                      className={`p-2 ${gradient} hover:brightness-110 ${textColor} rounded-xl transition-all backdrop-blur-sm border border-pink-500/30`}
-                      title="Post to Ayrshare"
-                      whileHover={{ scale: 1.1, rotate: 2 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      Post
-                    </motion.button>
                   </div>
                 </div>
 
@@ -287,6 +380,29 @@ const OutputSection = ({ content, showToast }) => {
           );
         })}
       </div>
+
+      {/* Unified Save and Post Button */}
+      <motion.div
+        className="flex justify-center mt-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8, duration: 0.6 }}
+      >
+        <motion.button
+          onClick={postBothVersions}
+          disabled={isPosting}
+          className={`px-8 py-4 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 hover:from-emerald-500/30 hover:to-cyan-500/30 text-emerald-200 rounded-2xl transition-all backdrop-blur-sm border border-emerald-500/30 flex items-center space-x-3 ${
+            isPosting ? "opacity-50 cursor-not-allowed" : "hover:scale-105"
+          }`}
+          whileHover={!isPosting ? { scale: 1.05, y: -2 } : {}}
+          whileTap={!isPosting ? { scale: 0.95 } : {}}
+        >
+          <Send className={`h-5 w-5 ${isPosting ? "animate-pulse" : ""}`} />
+          <span className="text-lg font-semibold">
+            {isPosting ? "Posting Both Versions..." : "Save and Post Both Versions"}
+          </span>
+        </motion.button>
+      </motion.div>
     </motion.div>
   );
 };
