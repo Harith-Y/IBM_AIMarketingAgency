@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ibm.marketingAI.dto.CampaignRequest;
 import com.ibm.marketingAI.dto.TwitterAnalyticsDTO;
 import com.ibm.marketingAI.dto.TwitterPostDTO;
+import com.ibm.marketingAI.repo.VersionRepo;
 import com.ibm.marketingAI.security.JwtUtil;
 import com.ibm.marketingAI.service.CampaignService;
 
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 @RestController
@@ -32,6 +35,9 @@ public class DashboardController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private VersionRepo versionRepo;
 
     
     @PostMapping("/post")
@@ -70,6 +76,19 @@ public class DashboardController {
         campaignService.saveTwitterPost(dto);
         return ResponseEntity.ok("Twitter post saved successfully");
     }
+
+    @GetMapping("/getid/{vid}")
+    public ResponseEntity<String> getTwitterId(@PathVariable Long vid) {
+        String twitterId = versionRepo.getTwitterId(vid);
+        if (twitterId != null) {
+            return ResponseEntity.ok(twitterId);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body("No Twitter ID found for version ID: " + vid);
+        }
+    }
+
+    
 
      @GetMapping("/analytics/{tweetId}")
     public TwitterAnalyticsDTO getAnalytics(@PathVariable String tweetId) {
