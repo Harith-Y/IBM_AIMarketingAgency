@@ -155,26 +155,23 @@ const HistoryPage = ({ onLogout, showToast }) => {
             >
               <h3 className="text-xl font-semibold mb-1">{item.brandName}</h3>
               <p className="text-sm text-gray-300 mb-4">{item.productName}</p>
-              <div className="flex gap-2 mb-4">
-              <motion.button onClick={() => handleViewContent(item, 'A')}
-                className="bg-cyan-500 hover:bg-cyan-600 text-white py-2 px-3 rounded"
-                whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
-                View Content A
-              </motion.button>
-              <motion.button onClick={() => handleViewContent(item, 'B')}
-                className="bg-pink-500 hover:bg-pink-600 text-white py-2 px-3 rounded"
-                whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
-                View Content B
-              </motion.button>
-            </div>
-
-            <div className="flex justify-center">
-              <motion.button onClick={() => handleViewAnalytics(item)}
+              <div className="flex gap-3 mb-4">
+                <motion.button onClick={() => handleViewContent(item, 'A')}
+                  className="bg-cyan-500 hover:bg-cyan-600 text-white py-2 px-3 rounded"
+                  whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+                  View Content A
+                </motion.button>
+                <motion.button onClick={() => handleViewContent(item, 'B')}
+                  className="bg-pink-500 hover:bg-pink-600 text-white py-2 px-3 rounded"
+                  whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+                  View Content B
+                </motion.button>
+                 <motion.button onClick={() => handleViewAnalytics(item)}
                 className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded shadow-lg"
                 whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
                 View Real Analytics
               </motion.button>
-            </div>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -218,7 +215,6 @@ const HistoryPage = ({ onLogout, showToast }) => {
                   className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg shadow-lg transition"
                 >
                   <Copy className="w-4 h-4" />
-                  <span>Copy</span>
                 </button>
 
                 <button
