@@ -13,5 +13,7 @@ import java.util.List;
 public interface VersionRepo extends JpaRepository<Version, Long>  {
     @Query("SELECT v.v_id FROM Version v WHERE v.twitter_id = :twitterId")
     Long findIdByTwitterId(@Param("twitterId") String twitterId);
+    @Query("SELECT v.twitter_id FROM Version v WHERE v.v_id = :vid")
+    String getTwitterId(@Param("vid") Long vid);
 
 }

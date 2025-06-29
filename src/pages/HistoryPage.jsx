@@ -49,7 +49,7 @@ const HistoryPage = ({ onLogout, showToast }) => {
         showToast?.(`Analytics for Version ${version} loaded from cache`, 'info');
         return;
       }
-
+      console.log(`${API_BASE_URL}/dashboard/analytics/${twitterId}`);
       const response = await axios.get(
         `${API_BASE_URL}/dashboard/analytics/${twitterId}`,
         {
@@ -73,16 +73,51 @@ const HistoryPage = ({ onLogout, showToast }) => {
     }
   };
 
-  const handleViewAnalytics = async (item) => {
-    setSelectedPost(item);
-    setShowModal(true);
+const getTwitterIdFromVid = async (vid, token) => {
+  try {
+    const longVid = Number(vid);
+    if (isNaN(longVid)) throw new Error("Invalid vid: not a number");
 
-    if (item.versionA?.twitterId) await fetchAnalytics(item.versionA.twitterId, 'A');
-    else showToast?.('No analytics data for Version A yet', 'warning');
+    const response = await axios.get(`${API_BASE_URL}/dashboard/getid/${longVid}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+      },
+    });
 
-    if (item.versionB?.twitterId) await fetchAnalytics(item.versionB.twitterId, 'B');
-    else showToast?.('No analytics data for Version B yet', 'warning');
-  };
+    return response.data; // Expecting Twitter ID string or full object
+  } catch (error) {
+    console.error(`Failed to get Twitter ID for vid ${vid}:`, error);
+    return null;
+  }
+};
+
+
+
+const handleViewAnalytics = async (item) => {
+  setSelectedPost(item);
+  setShowModal(true);
+
+  console.log("item is ", item);
+
+  // Version A
+  let twitterIdA = item.versionA?.twitterId;
+  if (!twitterIdA && item.versionA?.v_id) {
+    twitterIdA = await getTwitterIdFromVid(item.versionA.v_id);
+  }
+
+  if (twitterIdA) await fetchAnalytics(twitterIdA, 'A');
+  else showToast?.('No analytics data for Version A yet', 'warning');
+
+  // Version B
+  let twitterIdB = item.versionB?.twitterId;
+  if (!twitterIdB && item.versionB?.v_id) {
+    twitterIdB = await getTwitterIdFromVid(item.versionB.v_id);
+  }
+
+  if (twitterIdB) await fetchAnalytics(twitterIdB, 'B');
+  else showToast?.('No analytics data for Version B yet', 'warning');
+};
+
 
   const closeModal = () => {
     setShowModal(false);
