@@ -10,6 +10,7 @@ const MAX_TWITTER_LENGTH = 280;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const OutputSection = ({ content, showToast }) => {
+  const [postedLinks, setPostedLinks] = useState({ A: null, B: null });
   const [analytics, setAnalytics] = useState({ A: null, B: null });
   const [isPosting, setIsPosting] = useState(false);
   const token = localStorage.getItem("authToken");
@@ -81,6 +82,7 @@ const OutputSection = ({ content, showToast }) => {
             },
           }
         );
+        setPostedLinks((prev) => ({ ...prev, A: postUrl }));
 
         return { success: true, version };
       } else {
@@ -137,7 +139,7 @@ const OutputSection = ({ content, showToast }) => {
             },
           }
         );
-
+        setPostedLinks((prev) => ({ ...prev, B: postUrl }));
         return { success: true, version };
       } else {
         return { success: false, version, error: "No Twitter post ID found" };
@@ -150,6 +152,8 @@ const OutputSection = ({ content, showToast }) => {
       };
     }
   };
+
+  
 
   const postBothVersions = async () => {
     setIsPosting(true);
