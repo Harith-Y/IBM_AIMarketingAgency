@@ -155,23 +155,26 @@ const HistoryPage = ({ onLogout, showToast }) => {
             >
               <h3 className="text-xl font-semibold mb-1">{item.brandName}</h3>
               <p className="text-sm text-gray-300 mb-4">{item.productName}</p>
-              <div className="flex space-x-2 mb-4">
-                <motion.button onClick={() => handleViewContent(item, 'A')}
-                  className="bg-cyan-500 hover:bg-cyan-600 text-white py-2 px-3 rounded"
-                  whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
-                  View Content A
-                </motion.button>
-                <motion.button onClick={() => handleViewContent(item, 'B')}
-                  className="bg-pink-500 hover:bg-pink-600 text-white py-2 px-3 rounded"
-                  whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
-                  View Content B
-                </motion.button>
-              </div>
+              <div className="flex gap-2 mb-4">
+              <motion.button onClick={() => handleViewContent(item, 'A')}
+                className="bg-cyan-500 hover:bg-cyan-600 text-white py-2 px-3 rounded"
+                whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+                View Content A
+              </motion.button>
+              <motion.button onClick={() => handleViewContent(item, 'B')}
+                className="bg-pink-500 hover:bg-pink-600 text-white py-2 px-3 rounded"
+                whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+                View Content B
+              </motion.button>
+            </div>
+
+            <div className="flex justify-center">
               <motion.button onClick={() => handleViewAnalytics(item)}
                 className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded shadow-lg"
                 whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
                 View Real Analytics
               </motion.button>
+            </div>
             </motion.div>
           ))}
         </div>
@@ -179,83 +182,104 @@ const HistoryPage = ({ onLogout, showToast }) => {
 
       {/* Popups */}
       {showModal && selectedPost && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <motion.div className="bg-white rounded-lg p-6 w-11/12 md:w-2/3 lg:w-1/2 relative"
-            initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
-            <button onClick={closeModal} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700">✕</button>
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+        <motion.div
+          className="bg-gradient-to-br from-indigo-900/90 to-purple-900/90 rounded-2xl p-6 w-11/12 md:w-2/3 lg:w-1/2 border border-white/20 shadow-2xl text-white relative"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          <button
+            onClick={closeModal}
+            className="absolute top-4 right-4 text-white hover:text-red-400 transition"
+            title="Close"
+          >
+            ✕
+          </button>
 
-            {modalType === 'content' && (
-              <>
-                <h3 className="text-xl font-semibold mb-3">
-                  Version {selectedPost.version} Content
-                </h3>
-                <div className="bg-white/5 p-4 rounded mb-4 backdrop-blur-sm border border-white/10 whitespace-pre-wrap text-gray-300">
-                  {selectedPost[`version${selectedPost.version}`].content}
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => copyToClipboard(
+          {modalType === 'content' && (
+            <>
+              <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                Version {selectedPost.version} Content
+              </h3>
+
+              <div className="bg-white/10 rounded-xl p-4 mb-5 text-gray-200 whitespace-pre-wrap font-mono border border-white/10 backdrop-blur-sm">
+                {selectedPost[`version${selectedPost.version}`].content}
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() =>
+                    copyToClipboard(
                       selectedPost[`version${selectedPost.version}`].content,
                       selectedPost.version
-                    )}
-                    className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
-                  >
-                    <Copy className="w-4 h-4" />
-                    <span>Copy</span>
-                  </button>
-                  <button
-                    onClick={() => downloadContent(
+                    )
+                  }
+                  className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg shadow-lg transition"
+                >
+                  <Copy className="w-4 h-4" />
+                  <span>Copy</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    downloadContent(
                       selectedPost[`version${selectedPost.version}`].content,
-                      selectedPost[`version${selectedPost.version}`].title || `Version${selectedPost.version}`
-                    )}
-                    className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded"
+                      selectedPost[`version${selectedPost.version}`].title ||
+                        `Version${selectedPost.version}`
+                    )
+                  }
+                  className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg shadow-lg transition"
+                >
+                  <Download className="w-4 h-4" />
+                </button>
+
+                {selectedPost[`version${selectedPost.version}`]?.postUrl && (
+                  <button
+                    onClick={() =>
+                      copyToClipboard(
+                        selectedPost[`version${selectedPost.version}`].postUrl,
+                        selectedPost.version
+                      )
+                    }
+                    className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg shadow-lg transition"
                   >
-                    <Download className="w-4 h-4" />
-                    <span>Download</span>
+                    <Link className="w-4 h-4" />
                   </button>
-                  {/* 🔗 Copy Twitter Link Button */}
-                  {selectedPost[`version${selectedPost.version}`]?.postUrl && (
-                    <button
-                      onClick={() =>
-                        copyToClipboard(
-                          selectedPost[`version${selectedPost.version}`].postUrl,
-                          selectedPost.version
-                        )
-                      }
-                      className="bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded flex items-center space-x-1"
-                    >
-                      <Link className="w-4 h-4" />
-                      <span>Copy Link</span>
-                    </button>
-                  )}
-                 </div>
-              </>
-            )}
+                )}
+              </div>
+            </>
+          )}
 
-            {modalType === 'analytics' && (
-              <>
-                <h3 className="text-xl font-semibold mb-3">
-                  Analytics for {selectedPost.brandName} Campaign
-                </h3>
+          {modalType === 'analytics' && (
+            <>
+              <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                Analytics for {selectedPost.brandName} Campaign
+              </h3>
 
-                {(analytics.A || analytics.B) ? (
-                  <>
-                    <motion.div className="mb-4 text-sm text-white font-semibold px-4 py-2 rounded bg-gradient-to-r from-indigo-500 to-purple-600 shadow-md inline-block"
-                      initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-                      Best Performer: Version{' '}
-                      <span className="underline">
-                        {(analytics.A?.public_metrics.impression_count || 0) >
-                          (analytics.B?.public_metrics.impression_count || 0)
-                          ? 'A' : 
-                        (analytics.A?.public_metrics.like_count || 0) >
+              {(analytics.A || analytics.B) ? (
+                <>
+                  <motion.div
+                    className="mb-4 text-sm font-semibold px-4 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 shadow-md inline-block"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    Best Performer: Version{' '}
+                    <span className="underline">
+                      {(analytics.A?.public_metrics.impression_count || 0) >
+                      (analytics.B?.public_metrics.impression_count || 0)
+                        ? 'A'
+                        : (analytics.A?.public_metrics.like_count || 0) >
                           (analytics.B?.public_metrics.like_count || 0)
-                          ? 'A' : 'B'
-                        }
-                      </span>
-                    </motion.div>
+                        ? 'A'
+                        : 'B'}
+                    </span>
+                  </motion.div>
 
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={[
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                      data={[
                         {
                           metric: 'Impressions',
                           A: analytics.A?.public_metrics.impression_count || 0,
@@ -276,24 +300,26 @@ const HistoryPage = ({ onLogout, showToast }) => {
                           A: analytics.A?.public_metrics.retweet_count || 0,
                           B: analytics.B?.public_metrics.retweet_count || 0,
                         },
-                      ]}>
-                        <XAxis dataKey="metric" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="A" fill="#00B5D8" />
-                        <Bar dataKey="B" fill="#805AD5" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </>
-                ) : (
-                  <p className="text-gray-700">No analytics to display.</p>
-                )}
-              </>
-            )}
-          </motion.div>
-        </div>
-      )}
+                      ]}
+                    >
+                      <XAxis dataKey="metric" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="A" fill="#00B5D8" />
+                      <Bar dataKey="B" fill="#805AD5" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </>
+              ) : (
+                <p className="text-gray-300">No analytics to display yet.</p>
+              )}
+            </>
+          )}
+        </motion.div>
+      </div>
+    )}
+
     </motion.div>
   );
 };
