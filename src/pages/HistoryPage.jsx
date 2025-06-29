@@ -35,11 +35,14 @@ const HistoryPage = ({ onLogout, showToast }) => {
   const fetchAnalytics = async (twitterId, version) => {
     try {
       const cached = localStorage.getItem(`analytics_${twitterId}`);
+      console.log(cached);
       if (cached) {
         setAnalytics(prev => ({ ...prev, [version]: JSON.parse(cached) }));
         showToast?.(`Analytics for Version ${version} loaded from cache`, 'info');
         return true;
       }
+      console.log(`${API_BASE_URL}/dashboard/analytics/${twitterId}`);
+      console.log("with bearer token "+token);
       const response = await axios.get(
         `${API_BASE_URL}/dashboard/analytics/${twitterId}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -59,7 +62,8 @@ const HistoryPage = ({ onLogout, showToast }) => {
       const response = await axios.get(`${API_BASE_URL}/dashboard/getid/${vid}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      return response.data; // expected ID
+      console.log(response.data);
+      return String(response.data.twitterId);; // expected ID
     } catch {
       return null;
     }
@@ -69,10 +73,15 @@ const HistoryPage = ({ onLogout, showToast }) => {
     setSelectedPost(item);
     setModalType('analytics');
     setShowModal(true);
-
+    console.log("item is");
+    console.log(item);
+    console.log(item.versionA?.v_id);
+    console.log(item.versionB?.v_id);
     const vidA = item.versionA?.twitterId || item.versionA?.v_id && await getTwitterIdFromVid(item.versionA.v_id);
     const vidB = item.versionB?.twitterId || item.versionB?.v_id && await getTwitterIdFromVid(item.versionB.v_id);
 
+    console.log("vid of A is "+vidA);
+    console.log("vid of B is "+vidB);
     const okA = vidA ? await fetchAnalytics(vidA, 'A') : false;
     const okB = vidB ? await fetchAnalytics(vidB, 'B') : false;
 

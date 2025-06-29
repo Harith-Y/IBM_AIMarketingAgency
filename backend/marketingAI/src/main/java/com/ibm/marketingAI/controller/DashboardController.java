@@ -1,6 +1,9 @@
 package com.ibm.marketingAI.controller;
 
 
+import java.util.Collections;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -78,13 +81,20 @@ public class DashboardController {
     }
 
     @GetMapping("/getid/{vid}")
-    public ResponseEntity<String> getTwitterId(@PathVariable Long vid) {
+    public ResponseEntity<Map<String, String>> getTwitterId(@PathVariable Long vid) {
+        log.info("vid in getTwitterId controller(line 82 of dashboardcontroller) is {} ", vid);
+
+        // Assuming versionRepo.getTwitterId(vid) returns a String, as you confirmed
         String twitterId = versionRepo.getTwitterId(vid);
+
+        log.info("twitterId " + twitterId);
         if (twitterId != null) {
-            return ResponseEntity.ok(twitterId);
+            // Return as a JSON object with a key "twitterId" and its string value
+            return ResponseEntity.ok(Collections.singletonMap("twitterId", twitterId));
         } else {
+            // For error cases, also return a JSON object for consistency
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                .body("No Twitter ID found for version ID: " + vid);
+                                 .body(Collections.singletonMap("message", "No Twitter ID found for version ID: " + vid));
         }
     }
 

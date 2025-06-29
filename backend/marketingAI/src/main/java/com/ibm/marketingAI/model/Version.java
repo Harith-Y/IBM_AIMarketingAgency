@@ -1,6 +1,9 @@
 package com.ibm.marketingAI.model;
 
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -31,7 +34,7 @@ public class Version {
     private String content;
     @Embedded
     private Metrics metrics;
-
+    @JsonSerialize(using = ToStringSerializer.class)
     private String twitter_id;
     private String twitter_link;
 }
