@@ -5,8 +5,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.ibm.marketingAI.dto.CampaignRequest;
@@ -23,7 +21,7 @@ import com.ibm.marketingAI.repo.ResponseRepo;
 import com.ibm.marketingAI.repo.UserRepository;
 import com.ibm.marketingAI.repo.VersionRepo;
 
-
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -32,10 +30,14 @@ import org.springframework.http.*;
 
 
 @Service
+@Slf4j
 public class CampaignService {
 
     @Value("${twitter.bearer.token}")
     private String bearerToken;
+    
+    @Value("${twitter.bearer.token.2}")
+    private String bearerToken2;
 
     @Autowired
     private ResponseRepo campaignRepo;
@@ -146,20 +148,47 @@ public class CampaignService {
     public TwitterAnalyticsDTO fetchTweetAnalytics(String tweetId) {
         String url = "https://api.twitter.com/2/tweets/" + tweetId + "?tweet.fields=public_metrics";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(bearerToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        log.info("url is "+url);
+        Long v_id = versionRepo.findIdByTwitterId(tweetId);
+        
+        
+        log.info("v_id is "+v_id);
 
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        if (v_id % 2 == 0) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(bearerToken);
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        ResponseEntity<TwitterDTO> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                entity,
-                TwitterDTO.class
-        );
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<TwitterDTO> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    TwitterDTO.class
+            );
 
         return response.getBody().getData();
+        } else {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(bearerToken2);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<TwitterDTO> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    TwitterDTO.class
+            );
+
+            return response.getBody().getData();
+        }
+
+
+
+        
     }
 
 
