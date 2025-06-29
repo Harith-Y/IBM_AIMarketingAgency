@@ -22,27 +22,27 @@ function buildPrompt(request) {
   
   // Determine ad type based on context (you can make this more dynamic)
   const adType = "marketing campaign";
-  const platform = "multi-platform"; // You can make this dynamic based on user selection
+  const platform = "Twitter"; // You can make this dynamic based on user selection
   
-  return `Good. You are an expert marketing copywriter. Create a compelling ${adType} for the following product:
+  return `You are an expert marketing copywriter. Create two unique compelling ${adType} variations (to enable A/B testing) for the following product:
 
 Brand Name: ${brandName}
 
 Product Name: ${productName || 'N/A'}
 
-Campaign Tone: ${tone} (e.g., playful, bold, premium, friendly, inspiring)
+Campaign Tone: ${tone}
 
-Target Audience: ${audienceCategory} (${audienceType})
+Target Audience: ${audienceCategory} (${audienceType} Gender)
 
 Age Range: ${minAge}-${maxAge}
 
-Platform: ${platform} (e.g., Instagram, Facebook, Google Ads, LinkedIn)
+Platform: ${platform}
 
 ⚡ Ensure the ad appeals to the specified age group and tone.
 ⚡ Make the language natural, engaging, and suited for the platform.
 ⚡ Suggest a CTA (Call to Action).
 
-Generate two unique variations to enable A/B testing. Label them clearly as "Variation A" and "Variation B". Make sure each version is strictly different and more than 50 words.`;
+Label them clearly as "Variation A" and "Variation B". Make sure each version is strictly different and more than 50 words.`;
 }
 
 // Get IAM token from IBM
@@ -67,67 +67,31 @@ function parseVariations(content) {
     };
   }
 
-  // Improved regex to match 'Variation A:' or 'Version A:' at the start of a line, and avoid partial matches
-  const pattern = /(?:^|\n)\s*(variation|version)\s*a\s*[:\-\.]?\s*([\s\S]*?)(?=(?:^|\n)\s*(variation|version)\s*b\s*[:\-\.]?)/i;
-  const match = content.match(pattern);
-  if (match) {
-    const contentA = match[2].trim();
-    // Find content after 'Variation B' or 'Version B'
-    const afterA = content.substring(match.index + match[0].length);
-    // Find the next label (if any) and extract only the content
-    const bPattern = /(?:^|\n)\s*(variation|version)\s*b\s*[:\-\.]?\s*([\s\S]*)/i;
-    const bMatch = afterA.match(bPattern);
-    const contentB = bMatch ? bMatch[2].trim() : afterA.trim();
-    if (contentA && contentB && contentA !== contentB) {
-      return { contentA, contentB };
-    }
+  // Simple and reliable parsing based on "Variation A:" and "Variation B:" patterns
+  const variationAPattern = /variation\s+a\s*:\s*([\s\S]*?)(?=variation\s+b\s*:)/i;
+  const variationBPattern = /variation\s+b\s*:\s*([\s\S]*)/i;
+
+  const matchA = content.match(variationAPattern);
+  const matchB = content.match(variationBPattern);
+
+  let contentA = "No content from A";
+  let contentB = "No content from B";
+
+  if (matchA && matchA[1]) {
+    contentA = matchA[1].trim();
   }
 
-  // If no clear variations found, try to split by common separators
-  const separators = [
-    /\n\s*\n/, // Double newlines
-    /\n\s*[-*]\s*\n/, // Lines with dashes or asterisks
-    /\n\s*[A-Z][a-z]+:/, // Lines starting with capitalized words followed by colon
-  ];
-
-  for (const separator of separators) {
-    const parts = content.split(separator).filter(part => part.trim());
-    if (parts.length >= 2) {
-      const contentA = parts[0].trim();
-      const contentB = parts[1].trim();
-      if (contentA && contentB && contentA !== contentB) {
-        return { contentA, contentB };
-      }
-    }
+  if (matchB && matchB[1]) {
+    contentB = matchB[1].trim();
   }
 
-  // Last resort: split content in half
-  const lines = content.split('\n').filter(line => line.trim() !== '');
-  const midPoint = Math.floor(lines.length / 2);
-  const contentA = lines.slice(0, midPoint).join('\n').trim();
-  const contentB = lines.slice(midPoint).join('\n').trim();
+  // Remove any remaining "Variation A:" or "Variation B:" prefixes from the content
+  contentA = contentA.replace(/^variation\s+a\s*:\s*/i, '').trim();
+  contentB = contentB.replace(/^variation\s+b\s*:\s*/i, '').trim();
 
-  // If splitting resulted in empty content, create two different versions
-  if (!contentA || !contentB || contentA === contentB) {
-    // Create two variations by modifying the content slightly
-    const baseContent = contentA || contentB || content;
-    const contentA_final = baseContent;
-    const contentB_final = baseContent.replace(/\b(amazing|incredible|fantastic|wonderful)\b/gi, 
-      (match) => {
-        const alternatives = {
-          'amazing': 'exceptional',
-          'incredible': 'remarkable', 
-          'fantastic': 'outstanding',
-          'wonderful': 'excellent'
-        };
-        return alternatives[match.toLowerCase()] || match;
-      }
-    );
-    return { 
-      contentA: contentA_final, 
-      contentB: contentB_final !== contentA_final ? contentB_final : contentA_final + "\n\nAlternative approach: " + baseContent 
-    };
-  }
+  // Remove leading and trailing double apostrophes (quotation marks)
+  contentA = contentA.replace(/^["""]+|["""]+$/g, '').trim();
+  contentB = contentB.replace(/^["""]+|["""]+$/g, '').trim();
 
   return { contentA, contentB };
 }
@@ -183,7 +147,7 @@ app.post("/api/dashboard/post", async (req, res) => {
     const endpoint = `https://${process.env.REGION}.ml.cloud.ibm.com/ml/v1-beta/generation/text?version=2024-05-29`;
 
     // Use a fixed model for content generation
-    const workingModel = "ibm/granite-13b-instruct-v2";
+    const workingModel = "ibm/granite-3-8b-instruct";
 
     const response = await axios.post(
       endpoint,
@@ -192,9 +156,10 @@ app.post("/api/dashboard/post", async (req, res) => {
         input: prompt,
         project_id: process.env.IBM_PROJECT_ID,
         parameters: {
-          temperature: 0.8,
-          max_new_tokens: 1000, // Increased for two variations
-          decoding_method: "sample"
+          temperature: 0,
+          max_new_tokens: 2000, // Increased for two variations
+          decoding_method: "sample",
+          top_p: 1
         },
         reset: true, // Uncomment this if you want to reset the model's context/history because of it's biased responses.
       },
@@ -219,12 +184,12 @@ app.post("/api/dashboard/post", async (req, res) => {
 
     res.json({
       versionA: {
-        title: `${request.tone} ${request.brandName} Campaign - Version A`,
+        title: "Variation A",
         content: contentA,
         metrics: metricsA || { openRate: null, clickThroughRate: null, conversionRate: null },
       },
       versionB: {
-        title: `${request.tone} ${request.brandName} Campaign - Version B`,
+        title: "Variation B",
         content: contentB,
         metrics: metricsB || { openRate: null, clickThroughRate: null, conversionRate: null },
       },
