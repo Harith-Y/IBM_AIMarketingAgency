@@ -32,7 +32,10 @@ const GoogleSignIn = () => {
 
       setSnackbar({ open: true, message: "Login successful!", severity: "success" });
       console.log("navigating to /dashboard")
-      navigate("/dashboard");
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 100);
+      console.log("After navigating to /dashboard");
     } catch (error) {
       console.error("Google login failed:", error);
       setSnackbar({ open: true, message: "Google login failed!", severity: "error" });
